@@ -1,0 +1,32 @@
+/* 全站微调。主题默认样式基本够用，这里只补三件它没覆盖的事。 */
+
+/* 1. 中文段落的行距比拉丁文需要再松一点 */
+.vp-doc p,
+.vp-doc li {
+  line-height: 1.85;
+}
+
+/* 2. 手机上长表格会被挤成竖排单字。让它横向滚动，而不是压扁 */
+@media (max-width: 767px) {
+  .vp-doc table {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    font-size: 13px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vp-doc table th,
+  .vp-doc table td {
+    min-width: 6.5em;
+  }
+}
+
+/* 3. demo 沙盒在小屏上不要顶到边 */
+@media (max-width: 767px) {
+  .vp-doc .demo-wrapper,
+  .vp-doc iframe {
+    max-width: 100%;
+  }
+}
