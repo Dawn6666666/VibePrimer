@@ -23,7 +23,7 @@ export const navbar: ThemeNavItem[] = defineNavbarConfig([
     ],
   },
   {
-    text: '手艺库',
+    text: '核心技能',
     icon: 'carbon:tool-box',
     link: '/craft/prompt/',
     activeMatch: '^/craft/',

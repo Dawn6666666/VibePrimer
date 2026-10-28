@@ -11,7 +11,7 @@ createTime: 2026/10/28 09:49:48
 
 :::: card-grid cols="2"
 
-<Card title="Vibe Coding（原始用法）" icon="carbon:play-filled">
+<Card title="Vibe Coding 原始用法" icon="carbon:play-filled">
 
 - 目标是尽快做出可演示的东西
 - 可以暂时不读代码、不写测试
@@ -19,7 +19,7 @@ createTime: 2026/10/28 09:49:48
 
 </Card>
 
-<Card title="Vibe Engineering（工程化实践）" icon="carbon:tools">
+<Card title="Vibe Engineering 工程化实践" icon="carbon:tools">
 
 - 目标是做出能维护、能交付的软件
 - AI 参与写代码，人负责需求、计划、审阅、测试和验收
@@ -83,7 +83,7 @@ AI 可以在很短时间里生成几百行代码，也可能同时留下几个�
 - 之后
   time=查用手册 type=danger
 
-  手艺库、常见问题、模板和延伸阅读可以按需查阅。第一次读不懂全部内容不影响继续做项目。
+  核心技能、常见问题、模板和延伸阅读可以按需查阅。第一次读不懂全部内容不影响继续做项目。
 
 ::::
 

@@ -31,7 +31,7 @@ createTime: 2026/10/28 09:53:14
 ```css
 body {
   margin: 0;
-  min-height: 100vh;
+  padding: 32px 16px;
   display: grid;
   place-items: center;
   font-family: system-ui, sans-serif;

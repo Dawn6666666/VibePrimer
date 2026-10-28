@@ -13,37 +13,37 @@ const steps: Step[] = [
   {
     key: 'think',
     title: '想清楚',
-    doing: '把「我想要」翻译成「谁用、输入什么、输出什么、什么不做、什么算做完」。',
-    output: '半页需求卡 + 3 条验收标准',
-    done: '别人看完，能用自己的话复述你要做什么',
+    doing: '明确使用场景、输入数据、界面输出与硬性约束，排除本版不做的事项。',
+    output: '一份 REQUIREMENT.md 需求卡',
+    done: '每条核心需求都配有明确的手动验证操作与预期结果',
   },
   {
     key: 'plan',
     title: '定计划',
-    doing: '让 Agent 先别写代码，交文件清单和任务顺序。然后你砍掉一半。',
-    output: '3–7 条任务，落在 TODO.md 里',
-    done: '每条任务都能在 15 分钟内验证',
+    doing: '让 Agent 先读取需求，拆分文件职责与实现顺序，暂不修改代码。',
+    output: 'TODO.md 任务清单，按依赖关系排序',
+    done: '任务拆分为单次可独立验证的粒度，无多余未规划文件',
   },
   {
     key: 'build',
     title: '生成并运行',
-    doing: '一次一条任务。先看 diff，再跑起来，跑通就提交。',
-    output: '能跑的版本 + 一条 git commit',
-    done: '你亲眼在屏幕里看见了结果',
+    doing: '单次只派发一项具体任务，审查代码 Diff 确认无越权修改后在本地运行。',
+    output: '单一功能修改的代码与一次 Git 提交',
+    done: '功能在浏览器中运行正常，明确知道改动的代码行与作用',
   },
   {
     key: 'fix',
-    title: '发现问题并修改',
-    doing: '复现、读报错、二分定位、一次验证一个假设。',
-    output: '修好的版本 + 一句「为什么错」',
-    done: '同样的操作不再出错，而且你知道原因',
+    title: '定位并修改',
+    doing: '记录控制台报错与稳定复现路径，逐个排查假设并修改代码。',
+    output: '修复后的代码与原因记录',
+    done: '原复现操作不再出错，既有相关功能通过回归测试',
   },
   {
     key: 'ship',
     title: '检查并交付',
-    doing: '对着验收标准逐条试，补做边界测试，写 README。',
-    output: 'README + 能发出去的交付包',
-    done: '别人照着说明，能自己跑起来',
+    doing: '脱离开发环境，按说明文件在无痕窗口或全新目录下完整走通自测。',
+    output: '完备的 README.md 与通过自测的项目产物',
+    done: '他人仅凭说明文件即可独立克隆、启动并正常使用',
   },
 ]
 
@@ -77,11 +77,11 @@ function go(i: number) {
       <p class="fl-doing">{{ step.doing }}</p>
       <div class="fl-meta">
         <div>
-          <span class="fl-label">产出物</span>
+          <span class="fl-label">交付产物</span>
           <span class="fl-value">{{ step.output }}</span>
         </div>
         <div>
-          <span class="fl-label">走完的标志</span>
+          <span class="fl-label">验收标准</span>
           <span class="fl-value">{{ step.done }}</span>
         </div>
       </div>
@@ -89,7 +89,7 @@ function go(i: number) {
         <button class="fl-btn" @click="go(current - 1)">上一步</button>
         <span class="fl-count">{{ current + 1 }} / {{ steps.length }}</span>
         <button class="fl-btn primary" @click="go(current + 1)">
-          {{ current === steps.length - 1 ? '再来一圈' : '下一步' }}
+          {{ current === steps.length - 1 ? '回到第 1 步' : '下一步' }}
         </button>
       </div>
     </div>

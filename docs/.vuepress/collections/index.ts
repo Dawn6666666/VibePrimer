@@ -60,11 +60,11 @@ const caseSchedule = defineCollection({
 const craft = defineCollection({
   type: 'doc',
   dir: 'craft',
-  title: '手艺库',
+  title: '核心技能',
   linkPrefix: '/craft/',
   sidebar: [
     {
-      text: '第 4 章 · 手艺库',
+      text: '第 4 章 · 核心技能',
       icon: 'carbon:tool-box',
       items: ['prompt', 'context', 'read', 'test', 'safety'],
     },

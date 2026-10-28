@@ -44,25 +44,83 @@ createTime: 2026/10/28 09:50:47
 
 ::::: steps
 
-1. **移动到应用程序**
+1. **选择对应芯片架构的安装包**
 
-   解压后把 `Visual Studio Code.app` 拖进「应用程序」文件夹。
+   打开官网下载页时注意芯片区分：
+   - 搭载 M1 / M2 / M3 / M4 等 Apple 芯片的 Mac，下载 **Apple Silicon** 版本。
+   - 早期搭载 Intel 处理器的 Mac，下载 **Intel** 版本。
+   - 如果不确定，点击屏幕左上角苹果图标，选择“关于本机”查看处理器或芯片信息。
 
-   如果系统提示无法验证开发者，先确认安装包确实来自 VS Code 官网，再按苹果的安全提示处理。这个提示不是每次安装都会出现。
+2. **移动到「应用程序」目录**
 
-2. **启用终端命令**
+   下载得到 `.zip` 文件，双击解压出 `Visual Studio Code.app`。必须将其直接拖入访达的「应用程序」目录（`/Applications`）。
 
-   打开 VS Code，按 `Cmd+Shift+P`，输入 `shell command`，选 **Shell Command: Install 'code' command in PATH**。完成后重开终端，就可以使用 `code .`。
+   ::: caution 不要留在下载文件夹直接运行
+   如果直接在「下载」文件夹中双击运行，后续软件自动更新会失败，且终端注入的命令路径也会在清理临时文件后失效。
+   :::
+
+3. **配置终端 `code` 命令**
+
+   打开安装好的 VS Code，按快捷键 `Cmd+Shift+P` 调出命令面板，输入 `shell command`，选择：
+
+   **Shell Command: Install 'code' command in PATH**
+
+   系统弹出提权弹窗时输入开机密码确认。完成后彻底关闭终端窗口并重新打开，输入 `code --version` 验证是否输出版本信息。
+
+4. **遇到安全阻拦时的处理**
+
+   若首次打开提示“无法打开，因为 Apple 无法检查其是否包含恶意软件”：
+   - 打开“系统设置 → 隐私与安全性”，页面向下滑动找到“安全性”，点击“仍要打开”。
+   - 或者在终端中直接移除下载隔离属性：
+     ```bash
+     xattr -d com.apple.quarantine /Applications/Visual\ Studio\ Code.app
+     ```
 
 :::::
 
+::: tip 使用 Homebrew 安装
+如果本机已配置 Homebrew，可以在终端直接执行一行命令完成下载与 PATH 关联：
+
+```bash
+brew install --cask visual-studio-code
+```
+:::
+
 @tab Linux
 
-官网提供 `.deb` 和 `.rpm` 等安装包，请选择与你的发行版对应的格式，并按官方说明安装。安装后在终端运行 `code --version`，确认命令可用。
+::::: steps
+
+1. **安装对应的软件包**
+
+   - **Debian / Ubuntu 系列**：从官网下载 `.deb` 包后在终端运行：
+     ```bash
+     sudo dpkg -i code_*_amd64.deb
+     sudo apt install -f   # 自动补齐缺失依赖
+     ```
+   - **Fedora / openSUSE 系列**：从官网下载 `.rpm` 包后在终端运行：
+     ```bash
+     sudo dnf install ./code-*.rpm
+     ```
+   - **Arch Linux 系列**：在终端直接运行：
+     ```bash
+     sudo pacman -S code
+     ```
+
+2. **验证终端命令**
+
+   安装完成后，在终端运行以下命令：
+
+   ```bash
+   code --version
+   ```
+
+   终端打印出版本号即表示命令已可用。进入项目文件夹后运行 `code .`，即可直接在该目录下启动 VS Code。
+
+:::::
 
 ::::::
 
-### 中文界面（可选）
+### 中文语言包
 
 按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准发布者 Microsoft，点 Install，然后重启。
 
@@ -150,7 +208,7 @@ macOS 上，大多数 `Ctrl` 快捷键改成 `Cmd`，`Alt` 改成 `Option`。开
 
 1. **Chinese (Simplified) Language Pack**：前面已经装过可跳过。
 2. **Live Server**：右键 HTML 文件，选择 Open with Live Server；保存后浏览器会自动刷新。
-3. **Error Lens**（可选）：把错误信息显示在对应代码行附近。
+3. **Error Lens**：把错误信息显示在对应代码行附近，可按需安装。
 
 AI 编程插件先只启用一个，避免多个工具同时补全或弹出面板。格式化扩展也按语言需要安装，不必一次装一组功能重复的工具。
 

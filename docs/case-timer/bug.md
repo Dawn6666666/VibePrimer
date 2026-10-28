@@ -33,7 +33,7 @@ createTime: 2026/10/28 10:01:41
 
 ::: tabs#bug-repeat
 
-@tab 修复前（无状态守卫）#before
+@tab 修复前：无状态守卫#before
 
 ```javascript title="app.js"
 function start() {
@@ -46,7 +46,7 @@ function start() {
 }
 ```
 
-@tab 修复后（增加 running 状态锁）#after
+@tab 修复后：增加 running 状态锁#after
 
 ```javascript ins={2,4} title="app.js"
 function start() {
@@ -104,7 +104,7 @@ reset.addEventListener('click', () => {
 
 ::: tabs#timer-fix
 
-@tab 简单递减（有缺陷）#decrement
+@tab 简单递减：有缺陷#decrement
 
 ```javascript title="app.js - 每秒递减"
 function update() {
@@ -114,7 +114,7 @@ function update() {
 }
 ```
 
-@tab 时间戳差值（修复后）#timestamp
+@tab 时间戳差值：修复后#timestamp
 
 ```javascript ins={4-6} del={2} title="app.js - 基于绝对时间差"
 function update() {
@@ -171,7 +171,7 @@ function finish() {
 
 ::: tabs#storage-bug
 
-@tab 拼接缺陷（字符串相加）#naive
+@tab 拼接缺陷：字符串相加#naive
 
 ```javascript title="有隐患的直接存取"
 let done = localStorage.getItem('pomo-done') || 0
@@ -183,7 +183,7 @@ localStorage.setItem('pomo-done', done)
 countEl.textContent = done
 ```
 
-@tab 规范写法（类型校验与日期对象）#safe
+@tab 规范写法：类型校验与日期对象#safe
 
 ```javascript title="按日期持久化对象"
 const KEY = 'pomo-today-v1'

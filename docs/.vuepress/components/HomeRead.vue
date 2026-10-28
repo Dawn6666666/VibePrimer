@@ -19,7 +19,7 @@ const roads = [
   {
     no: '03',
     when: '想先把话说清楚',
-    title: '手艺库',
+    title: '核心技能',
     desc: '提示词、上下文、读代码、测试、安全。这五页不教语法，决定的是你后面所有项目的上限。',
     link: '/craft/prompt/',
     time: '随时翻',
