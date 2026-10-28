@@ -1,114 +1,123 @@
 ---
-title: 四类典型问题
+title: 第四步：盯差量与修边界
 icon: carbon:debug
 permalink: /case-schedule/debug/
 createTime: 2026/10/28 10:26:00
 ---
 
-这一节作为诊断手册使用。如果生成阶段出现相同症状，可以按对应方法定位；也可以先提交当前可用版本，再用文中的错误代码做故障练习。严格按照完成版操作的人不一定能自然复现每个问题。
+在五步循环中，**第四步是核心质量关口：盯差量与修边界**。
 
-## 问题 1：一门非法课程让整表停止渲染
+课程表最容易出问题的两个边界：
+1. **周次规则交叉与时段重叠算法**（为什么 `all` 与 `odd` 会冲突，但 `odd` 与 `even` 绝不能冲突？）。
+2. **`localStorage` 越界与脏数据熔断**（当存储中存入 `999`、`abc` 或无痕模式报错时，系统能否安全回退？）。
 
-如果布局直接使用 `cols[c.day - 1]`，`day: 6` 会得到 `undefined`，继续读写就可能抛出异常。异常发生在循环中时，后续表格生成也会停止。
+本节我们将深入【任务三：冲突检测与周次持久化】的真实差量与破坏性实测。
 
-先记录实际报错，不要把所有白屏都归因于这个字段：
+## 派发任务三指令
 
 ```text
-操作：在 data.js 增加 day: 6 的课程并刷新
-期望：非法课程被跳过并警告，其他课程正常
-实际：表格没有更新，Console 报 Cannot read properties of undefined
-最近改动：只增加了这一条课程记录
+请执行【任务三：冲突检测与周次持久化】：
+- 实现两两冲突检测算法（同 day、节次区间重叠、周次有交集）。
+- 网格中被冲突占位的课程卡片添加红色标记（冲突警示边框或标签）。
+- 表格上方警告栏展示：若有冲突则取消 hidden，清晰列出所有冲突课程与时段（例如：【课程冲突】周三 第1–2节：大学英语 与 编译原理），无冲突时隐藏。
+- 实现周次持久化：用 localStorage 记录 currentWeek，读取时做 1–20 范围校验与容错兜底（读空、损坏、越界时静默回退为 1）。
+- 完成后在终端输出验收建议与快速验证方法。
 ```
 
-本版只支持周一至周五，正确预期不是“显示周六”，而是“跳过并警告”。修复方式是在冲突检测和布局之前调用 `validCourse`，同时检查整数、字段枚举和 `start + span - 1 <= PERIODS`。
+## 盯差量：通过 Git Diff 审查冲突算法
 
-合法加课和非法数据容错是两项测试。新增合法课程用于验收第 8 条；故意设置 `day: 6` 用于检查容错，不能互相替代。
+代码生成后，使用 `git diff` 重点审查以下两个核心算法模块：
 
-## 问题 2：`skip` 多输出一个格子
+:::: code-tabs
 
-错误代码：
+@tab 周次交集与区间重叠判定
 
 ```js
-if (cell === 'skip') {
-  html += '<td class="empty"></td>';
-  continue;
+// 1. 周次是否有交集：all 与任意相交；odd 与 even 永不相交！
+function weeksIntersect(a, b) {
+  if (a === "all" || b === "all") return true;
+  return a === b;
+}
+
+// 2. 连续节次区间是否有重叠：max(start) <= min(end)
+function periodsOverlap(startA, spanA, startB, spanB) {
+  const endA = startA + spanA - 1;
+  const endB = startB + spanB - 1;
+  return Math.max(startA, startB) <= Math.min(endA, endB);
+}
+
+// 3. 冲突三条件全量两两比对
+function findAllConflictPairs(list) {
+  const pairs = [];
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i + 1; j < list.length; j++) {
+      const a = list[i];
+      const b = list[j];
+      if (a.day === b.day && 
+          periodsOverlap(a.start, a.span, b.start, b.span) && 
+          weeksIntersect(a.weeks, b.weeks)) {
+        pairs.push([a, b]);
+      }
+    }
+  }
+  return pairs;
 }
 ```
 
-上一行的课程格已经通过 `rowspan` 占用了当前位置，这里又多输出一个 `<td>`，后续内容通常会向右错位，甚至出现额外列。正确写法仍然是不输出任何内容：
+@tab 周次持久化与 1–20 范围钳制
 
 ```js
-if (cell === 'skip') continue;
-```
+const WEEK_KEY = "schedule.currentWeek";
 
-定位时先看 Elements 中跨行单元格的位置，再检查当前行是否在预留位置之外多输出了 `td`。不要机械地数“每行必须有六个 td”，因为正确使用 `rowspan` 的行本来就会少一些单元格。
+// 严格校验整数与 1–20 范围，任何非法脏数据一律静默回退为 1
+function loadWeek() {
+  try {
+    const raw = localStorage.getItem(WEEK_KEY);
+    if (!raw) return 1;
+    const val = Number(raw);
+    return Number.isInteger(val) && val >= 1 && val <= 20 ? val : 1;
+  } catch {
+    return 1; // 隐私模式或禁用存储时静默降级
+  }
+}
 
-<Quiz
-  q="哪个信号最能直接定位这个 skip 问题？"
-  a="页面颜色看起来不统一"
-  b="上一行 rowspan 已占用位置，当前行仍多输出一个 td"
-  c="课程名称里有一个错别字"
-  d="刷新后样式可能变化"
-  correct="b"
-  why="skip 表示该位置已被上方单元格占用。多输出 td 会破坏列对齐，应在 Elements 中对照 rowspan 和实际单元格。其他选项与这个结构问题无直接关系。"
-/>
-
-## 问题 3：单双周显示反了
-
-常见原因是周次内部从 0 开始，却按从 1 开始的规则计算 `% 2`，或者直接把 `odd` 的判断写反。统一使用从 1 开始的周次，并集中到一个函数：
-
-```js
-function matchesWeek(c, week) {
-  if (c.weeks === 'odd') return week % 2 === 1;
-  if (c.weeks === 'even') return week % 2 === 0;
-  return true;
+function saveWeek(week) {
+  try {
+    localStorage.setItem(WEEK_KEY, String(week));
+  } catch {}
 }
 ```
 
-不要只看当前格“有一门课”就通过，要筛选同一时间格的两门互补课程：
+::::
 
-```js
-const slot = COURSES.filter((c) => c.day === 3 && c.start === 1);
-console.table([1, 2].map((week) => ({
-  week,
-  courses: slot.filter((c) => matchesWeek(c, week)).map((c) => c.name).join('、'),
-})));
+## 四项破坏性测试矩阵
+
+在交付之前，针对潜在边界异常进行破坏性测试验证：
+
+| 破坏性注入操作 | 预期表现 | 实测结果 |
+| --- | --- | --- |
+| **单双周互斥验证** | 周五第 1–2 节安排了「操作系统（odd）」与「计算机网络（even）」 | 两者永不重叠，**不产生任何冲突** | ✅ 警告栏无此项 |
+| **真实同格冲突** | 周三第 1–2 节安排了「大学英语（all）」与「编译原理（all）」 | 表格显示先录入的大学英语并带红色冲突标记；上方警告栏精确列出两门课名与时段 | ✅ 结构对齐不破版，数据零丢失 |
+| **动态周次交集测试** | 临时把「编译原理」改为 `odd`（第 1 周冲突，第 2 周不冲突） | 第 1 周弹出警告栏；切到第 2 周警告栏自动清空并隐藏 | ✅ 双向判定准确 |
+| **脏数据注入攻击** | 控制台向存储写入 `999`、`abc`、`7.5` 或空字符串后刷新页面 | 页面无白屏、Console 0 报错，安全平稳回退到第 1 周 | ✅ 容错熔断生效 |
+
+最终完成态视觉效果如下（上方红底警告栏 + 周三第 1–2 节单元格红框高亮）：
+
+![任务三最终完成态：冲突告警与红色高亮卡片](/images/case-schedule/task3-final.png)
+
+## 任务三打卡提交
+
+破坏性测试全部通过，提交任务三核心代码：
+
+```bash
+💻 [Bash]:
+$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现冲突检测与周次持久化"
+
+📋 [Result]:
+[main 743e2ff] feat: 实现冲突检测与周次持久化
+ 1 file changed, 230 insertions(+), 43 deletions(-)
 ```
 
-第 1 周应只有线性代数，第 2 周应只有大学物理。这样不会把其他周的课程混进检查结果。
+所有功能逻辑全部闭环交付。最后一步，完成工程清理与全量验收。
 
-## 问题 4：每周课和单周课重叠，却没有警告
-
-标题和症状要与错误代码对应。下面这段代码的问题是“只要周次字符串不同，就判为不冲突”：
-
-```diff
-- if (a.weeks !== b.weeks) return false;
-+ if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
-```
-
-红色行是要替换的旧判断，绿色行是新判断。实际代码里只保留新的一行，不要把 `+`、`-` 一起复制进去。
-
-它确实能排除 `odd` 和 `even`，却也会错误排除 `all` 和 `odd`。每周都有的一门课，与单周课在单周当然会重叠。
-
-正确条件是只有两门都限定单双周、且类型不同时，才没有周次交集：
-
-```js
-if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
-```
-
-可以临时添加同时间的一门 `all` 和一门 `odd` 课程验证。它们应产生一对冲突；改成 `odd` 和 `even` 后不应冲突。测试完恢复基准数据。
-
-## 记录和恢复
-
-每项测试只改一处，验完恢复基准数据，避免多个测试改动叠加。`BUGS.md` 可以写：
-
-```markdown
-- 非法 day：校验在布局之前执行，非法课程警告并跳过。
-- 表格右移：skip 多输出 td，改为直接 continue。
-- 单双周反了：统一从 1 开始的周次和 matchesWeek。
-- all / odd 漏报：只有 odd / even 互补时才排除冲突。
-```
-
-需要放弃未提交修改时，先运行 `git status` 和 `git diff`。`git restore .` 不会删除未跟踪的新文件，也不会默认清除已暂存改动。要回到更早的已提交版本，参照 [调试流程](/loop/fix/) 从好提交新建分支，不要直接硬重置含有未保存工作的分支。
-
-功能通过后进入 [交付](/case-schedule/ship/)。
+[下一步：检查并交付](/case-schedule/ship/){.read-more}

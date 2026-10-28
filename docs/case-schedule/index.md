@@ -5,304 +5,392 @@ permalink: /case-schedule/
 createTime: 2026/10/28 10:12:00
 ---
 
-课程表比番茄钟多了两层问题：每门课有七个字段，同一份数据还要根据周次、节次和冲突规则变成表格。页面可能看起来完整，实际却漏了一门课，所以本案例先确定数据，再实现界面。
+课程表比番茄钟更进一步：不仅涉及多字段数据结构契约，还要处理周次过滤（每周/单周/双周）、跨节次单元格合并（`rowspan`）以及多门课程在同一时间段冲突时的边界排版。
+
+本案例全程使用 **终端 `pi` CLI**（可直接配合 `tmux` 后台持久化）与编程智能体进行结对编程，依然严格贯彻「想清楚 → 定计划 → 生成并运行 → 盯差量与修边界 → 检查并交付」五步循环，杜绝复杂框架，打造一个双击即开的单文件课程表。
 
 ## 先看完成版
 
-点击 `‹` `›` 切换周次。单双周课程会变化，连上的节次会合并，刷新后保留周次。
+可以在下方试用完整效果：点击 `‹` `›` 切换 1–20 周。第 1 周与第 2 周的单双周课程会交替呈现；连续节次的课程会自动纵向合并；周三第 1–2 节的冲突课程会以红框标出，并在上方警告栏详细列出冲突课程名与时段。
 
-::::: demo title="完成版课程表" desc="示例含十门课和一组冲突。表格保留先录入的冲突课程并标红，上方警告列出所有冲突课程。"
+::::: demo title="完成版课程表" desc="支持 1–20 周次切换、跨节次 rowspan 合并、单双周交替与三条件冲突检测（先录入者胜+标红，警告栏保留全部）。"
 
 ```html
 <div class="app">
-  <div class="bar">
-    <button id="prev" title="上一周">‹</button>
-    <div class="wk">第 <b id="wnum">1</b> 周 · <span id="wpar">单周</span></div>
-    <button id="next" title="下一周">›</button>
-    <span class="spacer"></span>
-    <span id="warn" class="warn" hidden></span>
+  <div class="week-bar">
+    <button id="prevWeekBtn" type="button" aria-label="上一周">上一周</button>
+    <div id="weekDisplay" class="week-display" aria-live="polite">第 1 周 / 共 20 周（单周）</div>
+    <button id="nextWeekBtn" type="button" aria-label="下一周">下一周</button>
   </div>
-  <div class="scroller">
-    <table id="grid">
-      <thead><tr><th class="corner">节</th></tr></thead>
-      <tbody></tbody>
+
+  <div id="warningBar" class="warning-bar" role="alert" hidden></div>
+
+  <div class="table-wrap">
+    <table class="schedule" aria-label="周课表">
+      <thead>
+        <tr>
+          <th class="col-period" scope="col">节次</th>
+          <th scope="col">周一</th>
+          <th scope="col">周二</th>
+          <th scope="col">周三</th>
+          <th scope="col">周四</th>
+          <th scope="col">周五</th>
+        </tr>
+      </thead>
+      <tbody id="gridBody"></tbody>
     </table>
   </div>
-  <p class="foot">冲突时，表格保留先录入的课程；上方提示列出全部冲突课程。</p>
 </div>
 
 <style>
+  :root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-muted: #64748b;
+    --primary: #2563eb;
+    --primary-bg: #eff6ff;
+    --primary-border: #bfdbfe;
+    --warn-bg: #fef2f2;
+    --warn-border: #fecaca;
+    --warn-text: #991b1b;
+  }
   .app {
-    font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    color: #1d2330;
-    background: #f6f7f9;
+    max-width: 960px;
+    margin: 0 auto;
     padding: 16px;
-    border-radius: 10px;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
   }
-  .bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .bar button {
-    width: 30px; height: 30px; font-size: 18px; line-height: 1;
-    border: 1px solid #d3d8e0; background: #fff; color: #1d2330;
-    border-radius: 8px; cursor: pointer;
+  .week-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: var(--bg-page);
+    border-radius: 8px;
+    border: 1px solid var(--border);
   }
-  .bar button:hover { background: #eef1f6; }
-  .wk { font-size: 15px; font-variant-numeric: tabular-nums; }
-  .wk b { font-size: 17px; }
-  .spacer { flex: 1; }
-  .warn {
-    font-size: 13px; padding: 4px 10px; border-radius: 8px;
-    background: #fff1f0; color: #b42318; border: 1px solid #ffd2cc;
+  .week-bar button {
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--primary);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
   }
-  .scroller { overflow-x: auto; }
-  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 13px; }
-  th, td { border: 1px solid #e2e6ec; padding: 6px 8px; text-align: left; vertical-align: top; }
-  thead th { background: #eceff4; font-weight: 600; text-align: center; }
-  th.corner { width: 34px; text-align: center; }
-  td.p { background: #f0f2f6; text-align: center; color: #6b7381; }
-  td.empty, td.course { background: #fff; }
-  td.course .n { font-weight: 600; display: block; }
-  td.course .m { color: #6b7381; font-size: 12px; }
-  td.bad { background: #fff1f0; }
-  td.bad .n { color: #b42318; }
-  .tag {
-    display: block; width: max-content; font-size: 11px; padding: 0 5px;
-    border-radius: 4px; background: #eaeef5; color: #4a5361; margin-top: 3px;
+  .week-bar button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
-  .foot { font-size: 12px; color: #7b8392; margin: 12px 0 0; }
-  @media (prefers-color-scheme: dark) {
-    .app { background: #141821; color: #e6eaf2; }
-    .bar button { background: #1c2230; border-color: #303848; color: #e6eaf2; }
-    th, td { border-color: #2b3341; }
-    thead th { background: #1d2430; }
-    td.p { background: #1a2029; color: #93a0b4; }
-    td.empty, td.course { background: #171c25; }
-    td.bad { background: #2a1917; }
-    td.bad .n { color: #ff8c7e; }
-    .tag { background: #232b3b; color: #a9b4c4; }
-    .warn { background: #2a1917; color: #ff8c7e; border-color: #442420; }
-    .foot { color: #8b95a6; }
+  .week-display {
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .warning-bar {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    color: var(--warn-text);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  table.schedule {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    text-align: center;
+  }
+  table.schedule th, table.schedule td {
+    border: 1px solid var(--border);
+    padding: 8px 6px;
+    vertical-align: top;
+  }
+  table.schedule th {
+    background: var(--bg-page);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .col-period { width: 68px; }
+  .period-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .course-card {
+    background: var(--primary-bg);
+    border: 1px solid var(--primary-border);
+    border-radius: 6px;
+    padding: 6px;
+    text-align: left;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .course-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    line-height: 1.3;
+  }
+  .course-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .tag-week {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 4px;
+    background: #e2e8f0;
+    color: #475569;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 2px;
+  }
+  td.is-conflict .course-card {
+    border-color: #ef4444;
+    background: #fef2f2;
+    box-shadow: 0 0 0 1px #ef4444;
+  }
+  td.is-conflict .course-name { color: #dc2626; }
+  .conflict-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 4px;
+    background: #ef4444;
+    color: #fff;
+    border-radius: 4px;
+    margin-right: 4px;
   }
 </style>
 
 <script>
   const COURSES = [
-    { name: '高等数学 A(2)', teacher: '王', room: 'B203', day: 1, start: 1, span: 2, weeks: 'all' },
-    { name: '数据结构', teacher: '李', room: 'C105', day: 1, start: 3, span: 2, weeks: 'all' },
-    { name: '概率论', teacher: '陈', room: 'A302', day: 2, start: 1, span: 2, weeks: 'even' },
-    { name: '大学英语(2)', teacher: '赵', room: 'D401', day: 2, start: 3, span: 2, weeks: 'all' },
-    { name: '线性代数', teacher: '孙', room: 'B101', day: 3, start: 1, span: 2, weeks: 'odd' },
-    { name: '大学物理', teacher: '周', room: 'B101', day: 3, start: 1, span: 2, weeks: 'even' },
-    { name: '程序设计实验', teacher: '吴', room: '机房 3', day: 4, start: 5, span: 2, weeks: 'all' },
-    { name: '马克思主义基本原理', teacher: '郑', room: 'E201', day: 4, start: 5, span: 2, weeks: 'all' },
-    { name: '体育（篮球）', teacher: '冯', room: '体育馆', day: 5, start: 3, span: 2, weeks: 'all' },
-    { name: '形势与政策', teacher: '何', room: 'E105', day: 5, start: 5, span: 2, weeks: 'odd' },
+    { name: "高等数学", teacher: "张伟", room: "A101", day: 1, start: 1, span: 2, weeks: "all" },
+    { name: "线性代数", teacher: "李娜", room: "B203", day: 2, start: 3, span: 2, weeks: "all" },
+    { name: "大学英语", teacher: "王芳", room: "C305", day: 3, start: 1, span: 2, weeks: "all" },
+    { name: "数据结构", teacher: "刘强", room: "A204", day: 4, start: 3, span: 2, weeks: "all" },
+    { name: "操作系统", teacher: "陈静", room: "B102", day: 5, start: 1, span: 2, weeks: "odd" },
+    { name: "计算机网络", teacher: "赵磊", room: "C201", day: 5, start: 1, span: 2, weeks: "even" },
+    { name: "体育（羽毛球）", teacher: "孙鹏", room: "体育馆", day: 2, start: 5, span: 2, weeks: "all" },
+    { name: "编译原理", teacher: "周敏", room: "A305", day: 3, start: 1, span: 2, weeks: "all" }
   ];
 
-  const DAYS = ['周一', '周二', '周三', '周四', '周五'];
-  const PERIODS = 6;
-  const KEY = 'vibe-schedule:week';
-  const WEEK_TYPES = ['all', 'odd', 'even'];
-  const courseSpan = (c) => c.span === undefined ? 1 : c.span;
+  let currentWeek = 1;
 
-  function validCourse(c) {
-    const span = courseSpan(c);
-    return c && ['name', 'teacher', 'room'].every((key) => typeof c[key] === 'string')
-      && Number.isInteger(c.day) && c.day >= 1 && c.day <= DAYS.length
-      && Number.isInteger(c.start) && c.start >= 1 && c.start <= PERIODS
-      && Number.isInteger(span) && span >= 1 && c.start + span - 1 <= PERIODS
-      && WEEK_TYPES.includes(c.weeks);
+  function weeksIntersect(a, b) {
+    if (a === "all" || b === "all") return true;
+    return a === b;
   }
 
-  function matchesWeek(c, week) {
-    if (c.weeks === 'odd') return week % 2 === 1;
-    if (c.weeks === 'even') return week % 2 === 0;
-    return true;
+  function periodsOverlap(startA, spanA, startB, spanB) {
+    const endA = startA + spanA - 1;
+    const endB = startB + spanB - 1;
+    return Math.max(startA, startB) <= Math.min(endA, endB);
   }
 
-  function activeCourses(week) {
-    return COURSES.filter((c) => {
-      if (!validCourse(c)) {
-        console.warn('课程字段或位置不合法，已跳过：', c);
-        return false;
-      }
-      return matchesWeek(c, week);
-    }).map((c) => ({ ...c, span: courseSpan(c), conflict: false }));
-  }
+  function getConflictsThisWeek(week) {
+    const thisWeekCourses = COURSES.filter(c => {
+      if (c.weeks === "all") return true;
+      if (c.weeks === "odd") return week % 2 === 1;
+      if (c.weeks === "even") return week % 2 === 0;
+      return false;
+    });
 
-  function overlap(a, b) {
-    if (a.day !== b.day) return false;
-    if (a.start >= b.start + b.span || b.start >= a.start + a.span) return false;
-    if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
-    return true;
-  }
-
-  function findConflicts(list) {
     const pairs = [];
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        if (overlap(list[i], list[j])) pairs.push([list[i], list[j]]);
+    for (let i = 0; i < thisWeekCourses.length; i++) {
+      for (let j = i + 1; j < thisWeekCourses.length; j++) {
+        const a = thisWeekCourses[i];
+        const b = thisWeekCourses[j];
+        if (a.day === b.day && periodsOverlap(a.start, a.span, b.start, b.span) && weeksIntersect(a.weeks, b.weeks)) {
+          pairs.push([a, b]);
+        }
       }
     }
-    return pairs;
-  }
-
-  function loadWeek() {
-    try {
-      const value = Number(localStorage.getItem(KEY));
-      return Number.isInteger(value) && value >= 1 && value <= 20 ? value : 1;
-    } catch {
-      return 1;
-    }
-  }
-
-  function saveWeek(value) {
-    try {
-      localStorage.setItem(KEY, String(value));
-    } catch {
-      // 无法保存时，本次页面内仍可切周
-    }
-  }
-
-  let week = loadWeek();
-
-  function buildColumns(list, conflicts) {
-    for (const [a, b] of conflicts) {
-      a.conflict = true;
-      b.conflict = true;
-    }
-
-    const cols = DAYS.map(() => Array(PERIODS).fill(null));
-    for (const c of list) {
-      const col = cols[c.day - 1];
-      const start = c.start - 1;
-      let canPlace = true;
-      for (let k = 0; k < c.span; k++) {
-        if (col[start + k] !== null) canPlace = false;
-      }
-      if (!canPlace) {
-        console.warn('与已放置课程重叠，仅在冲突提示中保留：', c.name);
-        continue;
-      }
-      col[start] = { course: c, span: c.span };
-      for (let k = 1; k < c.span; k++) col[start + k] = 'skip';
-    }
-    return cols;
-  }
-
-  const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  function escapeHTML(value) {
-    return String(value).replace(/[&<>"']/g, (ch) => ESCAPES[ch]);
-  }
-
-  function cellText(c) {
-    const tag = c.weeks === 'all' ? '' : `<span class="tag">${c.weeks === 'odd' ? '单周' : '双周'}</span>`;
-    return `<span class="n">${escapeHTML(c.name)}</span><span class="m">${escapeHTML(c.teacher)} · ${escapeHTML(c.room)}</span>${tag}`;
+    return { list: thisWeekCourses, pairs };
   }
 
   function render() {
-    const list = activeCourses(week);
-    const conflicts = findConflicts(list);
-    const cols = buildColumns(list, conflicts);
+    const prevBtn = document.getElementById("prevWeekBtn");
+    const nextBtn = document.getElementById("nextWeekBtn");
+    const weekDisplay = document.getElementById("weekDisplay");
+    const warningBar = document.getElementById("warningBar");
+    const gridBody = document.getElementById("gridBody");
 
-    document.querySelector('#grid thead tr').innerHTML =
-      '<th class="corner">节</th>' + DAYS.map((d) => `<th>${d}</th>`).join('');
+    prevBtn.disabled = currentWeek <= 1;
+    nextBtn.disabled = currentWeek >= 20;
+    const parity = currentWeek % 2 === 1 ? "单周" : "双周";
+    weekDisplay.textContent = `第 ${currentWeek} 周 / 共 20 周（${parity}）`;
 
-    let html = '';
-    for (let p = 0; p < PERIODS; p++) {
-      html += `<tr><td class="p">${p + 1}</td>`;
-      for (let d = 0; d < DAYS.length; d++) {
-        const cell = cols[d][p];
-        if (cell === 'skip') continue;
+    const { list, pairs } = getConflictsThisWeek(currentWeek);
+
+    if (pairs.length > 0) {
+      warningBar.hidden = false;
+      const DAY_NAMES = ["周一", "周二", "周三", "周四", "周五"];
+      const messages = pairs.map(([a, b]) => {
+        const start = Math.min(a.start, b.start);
+        const end = Math.max(a.start + a.span - 1, b.start + b.span - 1);
+        return `${DAY_NAMES[a.day - 1]} 第${start}–${end}节：${a.name} 与 ${b.name}`;
+      });
+      warningBar.textContent = `【课程冲突】` + messages.join("；");
+    } else {
+      warningBar.hidden = true;
+      warningBar.textContent = "";
+    }
+
+    // Grid matrix [day 1..5][period 1..6]
+    const grid = Array.from({ length: 5 }, () => Array(6).fill(null));
+    const conflictCourseSet = new Set(pairs.flat());
+
+    for (const course of list) {
+      const d = course.day - 1;
+      const s = course.start - 1;
+      if (grid[d][s] !== null) continue; // 先录入者占位，重叠者进警告栏
+      grid[d][s] = { course, span: course.span, isConflict: conflictCourseSet.has(course) };
+      for (let k = 1; k < course.span; k++) {
+        if (s + k < 6) grid[d][s + k] = "skip";
+      }
+    }
+
+    let tbodyHtml = "";
+    for (let p = 0; p < 6; p++) {
+      tbodyHtml += `<tr><th class="col-period period-label">第 ${p + 1} 节</th>`;
+      for (let d = 0; d < 5; d++) {
+        const cell = grid[d][p];
+        if (cell === "skip") continue;
         if (cell) {
           const c = cell.course;
-          html += `<td class="course${c.conflict ? ' bad' : ''}" rowspan="${cell.span}">${cellText(c)}</td>`;
+          const conflictClass = cell.isConflict ? " is-conflict" : "";
+          const badge = cell.isConflict ? `<span class="conflict-badge">冲突</span>` : "";
+          const weekTag = c.weeks === "all" ? "" : `<span class="tag-week">${c.weeks === "odd" ? "单周" : "双周"}</span>`;
+          tbodyHtml += `<td class="${conflictClass}" rowspan="${cell.span}">
+            <div class="course-card">
+              <div class="course-name">${badge}${c.name}</div>
+              <div class="course-meta">${c.teacher} · ${c.room}</div>
+              ${weekTag}
+            </div>
+          </td>`;
         } else {
-          html += '<td class="empty"></td>';
+          tbodyHtml += `<td></td>`;
         }
       }
-      html += '</tr>';
+      tbodyHtml += `</tr>`;
     }
-    document.querySelector('#grid tbody').innerHTML = html;
-    document.querySelector('#wnum').textContent = week;
-    document.querySelector('#wpar').textContent = week % 2 === 1 ? '单周' : '双周';
-
-    const warn = document.querySelector('#warn');
-    if (conflicts.length) {
-      warn.hidden = false;
-      warn.textContent = `⚠ ${conflicts.length} 对课程冲突：` + conflicts.map(([a, b]) => `${a.name} 和 ${b.name}`).join('；');
-    } else {
-      warn.hidden = true;
-    }
+    gridBody.innerHTML = tbodyHtml;
   }
 
-  document.querySelector('#prev').onclick = () => {
-    week = week > 1 ? week - 1 : 20;
-    saveWeek(week);
-    render();
-  };
-  document.querySelector('#next').onclick = () => {
-    week = week < 20 ? week + 1 : 1;
-    saveWeek(week);
-    render();
-  };
+  document.getElementById("prevWeekBtn").addEventListener("click", () => {
+    if (currentWeek > 1) { currentWeek--; render(); }
+  });
+  document.getElementById("nextWeekBtn").addEventListener("click", () => {
+    if (currentWeek < 20) { currentWeek++; render(); }
+  });
 
   render();
 </script>
-```
+:::::
 
-:::: tip 示例里的冲突
-周四第 5 节同时安排了“程序设计实验”和“马克思主义基本原理”。当前周表格显示先录入的程序设计实验并标红，上方提示会列出两门课。数据数组没有删除任何课程。
+## 最终交付物与目录结构
 
-这里统计的是“课程对数”。三门课两两重叠会形成 3 对冲突，不写成“3 处”。
+整个课程表项目以极其干净的工程结构落地在本地仓库中：
+
+:::: file-tree
+- schedule/
+  - index.html       # 单文件交付（HTML 骨架 + 课表网格样式 + 渲染与冲突逻辑）
+  - REQUIREMENT.md   # 第一步：7 字段契约、冲突三条件与 9 条验收标准
+  - TODO.md          # 第二步：三步拆解清单与手动验收步骤
+  - .gitignore       # 收尾：忽略本地截图文件（*.png）
 ::::
 
-## 多文件架构演进
+## 全流程 Git 提交历史
 
-和番茄钟的单文件相比，课程表拆分成了关注点分离的四个运行文件：
+全程使用 `pi` 智能体在终端执行，每一步先定计划、写完立即审查 Diff，形成了完全线性的提交历史：
 
-::: file-tree{title="课程表项目结构"}
-- schedule/
-  - index.html       // 页面结构与各模块引入
-  - style.css        // 表格网格排版与冲突高亮样式
-  - data.js          // 原始数据数组 COURSES，仅维护数据
-  - app.js           // 周次过滤、冲突判定与 DOM 渲染
-  - REQUIREMENT.md   // 字段约束与验收规则
-  - TODO.md          // 分步实施清单
-  - README.md        // 启动与自测说明
-:::
+:::: timeline
+=== 2026-10-28 · 需求锁定
+**`9240319` docs: 建立课程表最简需求卡**
+- 锁定 7 个核心课程字段契约（name, teacher, room, day, start, span, weeks）
+- 确立周次规则与冲突三条件判定机制，明确 9 项验收基准
 
-修改课程数据时只动 `data.js`；计算周次与处理单元格合并由 `app.js` 负责，这样可以让单次交给 Agent 的上下文更加聚焦。
+=== 2026-10-28 · 计划锁定
+**`95dd8b9` docs: 建立三步实施计划**
+- 拆分骨架搭建、数据渲染、冲突持久化三个任务
+- 明确禁止提前写代码，建立防破坏验收步骤
 
-## 学习安排
+=== 2026-10-28 · 任务一交付
+**`7446120` feat: 完成课表骨架搭建与基础网格**
+- 交付 5×6 原生表格骨架与周次切换栏
+- `COURSES`、`rowspan` 与 `localStorage` 为 0，杜绝提前越界
+
+=== 2026-10-28 · 任务二交付
+**`a31b0fc` feat: 实现课程数据渲染与跨节合并**
+- 接入 8 门内置课程，实现按周过滤与 `rowspan` 连续节次合并
+- 采取先到先占策略保护表格列宽，单双周课程交替生效
+
+=== 2026-10-28 · 任务三交付
+**`743e2ff` feat: 实现冲突检测与周次持久化**
+- 实现两两冲突检测与区间聚合算法，红框标记冲突卡片，展开警告栏
+- 实现 `localStorage` 周次存储，加持 1–20 边界钳制与损坏容错兜底
+
+=== 2026-10-28 · 收尾交付
+**`40b0213` chore: 忽略本地截图**
+- 配置 `.gitignore` 过滤本地开发产生的测试截图，保持仓库整洁
+::::
+
+## 五步实战演练路线
+
+按照真实的实操节奏，查看每一步的 Prompt 指令、代码审查与工具调用：
 
 ::: steps
+1. **[第一步：先定数据，再谈界面](/case-schedule/requirement/)**
+   - 通过 8 个技术访谈问题收敛数据契约，编写 `REQUIREMENT.md` 并打下根提交。
 
-1. **[需求分析](/case-schedule/requirement/)**
-   确定课程对象的七个核心字段、单双周过滤逻辑、重叠冲突规则与验收标准。
+2. **[第二步：让它先交方案](/case-schedule/plan/)**
+   - 强令 Agent 输出包含三阶段验证的 `TODO.md`，杜绝一次性冒进。
 
-2. **[定计划](/case-schedule/plan/)**
-   拆分文件职责，制定四个由浅入深的执行批次。
+3. **[第三步：生成并运行（任务一与任务二）](/case-schedule/build/)**
+   - 单任务派发：先写空表格骨架，再注入数据与 `rowspan` 合并算法。
 
-3. **[生成并运行](/case-schedule/build/)**
-   分步完成空表结构、数据过滤、单元格合并与冲突告警，每步验收后独立提交。
+4. **[第四步：盯差量与修边界（任务三）](/case-schedule/debug/)**
+   - 审查冲突检测三条件判定、红框告警逻辑与 `localStorage` 越界容错。
 
-4. **[调试常见问题](/case-schedule/debug/)**
-   排查单双周边界溢出、表格塌陷和重叠两两判定的边界漏洞。
-
-5. **[检查与交付](/case-schedule/ship/)**
-   完成无痕浏览器测试、清理控制台临时输出，补全使用说明。
-
+5. **[第五步：检查并交付（全量验收与收工）](/case-schedule/ship/)**
+   - 逐项核对 9 条验收标准，配置 `.gitignore`，检视 6 个原子提交。
 :::
 
-## 开工准备
+## 开始之前：环境准备
 
-在 `vibe-lab` 目录下新建 `schedule` 文件夹，使用 VS Code 打开并在该目录下执行 `git init`：
+在终端中新建 `schedule` 目录，初始化 Git 仓库，并使用 `pi` 启动结对编程：
 
 ```bash
-cd ~/dev/vibe-lab       # Windows 请换用对应的开发路径
-mkdir schedule
-cd schedule
+mkdir -p ~/Code/schedule
+cd ~/Code/schedule
 git init
+
+# 可以直接在当前终端执行 pi，或在 tmux 中持久化运行：
+tmux new-session -s schedule -c ~/Code/schedule
+pi
 ```
+
+环境就绪后，直接进入第一步：
 
 [下一步：先定数据](/case-schedule/requirement/){.read-more}

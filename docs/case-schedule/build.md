@@ -1,213 +1,160 @@
 ---
-title: 拆成四步
+title: 第三步：生成并运行
 icon: carbon:play-filled
 permalink: /case-schedule/build/
 createTime: 2026/10/28 10:20:00
 ---
 
-下面四个生成步骤与 `TODO.md` 一一对应。每一步都先运行和验收，再提交；代码行数不作为通过标准。
+计划已经锁定为三个独立任务。在五步循环中，**第三步的铁律依然是「单任务推进」**：每次只派发一个任务，做完停下来，肉眼审查 diff、在真实浏览器中运行验收，通过后再推进下一项。
 
-## 文件分工和加载顺序
+本节我们将实际跑通前两项任务：任务一（纯静态表格骨架）与任务二（数据接入、动态切周与 `rowspan` 跨节合并）。
 
-| 文件 | 职责 |
-| --- | --- |
-| `index.html` | 表格、按钮、提示区域，引入 CSS 和两个脚本 |
-| `style.css` | 表格、冲突状态和窄屏滚动样式 |
-| `data.js` | `const COURSES = [...]`，只保存课程数据 |
-| `app.js` | 校验、计算位置、冲突检测、渲染和切周 |
+## 任务一：骨架搭建与基础网格
 
-项目文件放在同一个目录，不需要安装依赖：
+### 1. 派发单任务指令
 
-:::: file-tree
+严格限制 Agent 活动范围，禁止提前写入数据与冲突逻辑：
 
-- schedule
-  - index.html # 双击打开的入口
-  - style.css # 样式
-  - data.js # 课程数据，先加载
-  - app.js # 页面逻辑，后加载
-  - REQUIREMENT.md # 需求与验收标准
-  - TODO.md # 当前进度
+```text
+严格只实现【任务一：骨架搭建与基础网格】：
+- 创建 index.html，包含周次切换栏、5列6行基础表格、空网格样式与响应式布局。
+- 绝不要接入 COURSES 数据渲染！绝不要做冲突检测！
+- 页面先保持纯静态表格骨架与基础周次切换计数（纯内存 1-20，不用 localStorage）。
+- 完成后在终端输出预览和验收步骤，等待我验收。
+```
+
+### 2. 审查与越界自检
+
+Agent 生成了极简的单文件 `index.html`（251 行）。我们审查代码时确认：
+1. **零越界**：全文检索 `COURSES`、`localStorage`、`conflict`、`rowspan`，出现次数全部为 **0**。
+2. **结构完整**：包含顶部切周栏（按钮 + 第 N 周文案）、隐藏的警告栏占位、以及原生 5×6 带有 `data-day` 与 `data-period` 的空表格。
+3. **响应式自适应**：容器使用 `overflow-x: auto`，表格设置 `min-width: 640px` 与 `table-layout: fixed`，窗口拖窄时不塌陷、出现横向滚动条。
+
+### 3. 首屏直测效果
+
+在真实浏览器中打开，空网格与周次切换栏渲染如下：
+
+![任务一：纯静态课表空网格与切周栏](/images/case-schedule/task1-preview.png)
+
+手动点击上一周/下一周，数字在 1–20 之间平稳递增递减，到头自动禁用按钮，刷新页面平稳回到第 1 周。
+
+### 4. 任务一打卡提交
+
+验收通过后，在终端执行 Git 提交：
+
+```bash
+💻 [Bash]:
+$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 完成课表骨架搭建与基础网格"
+
+📋 [Result]:
+[main 7446120] feat: 完成课表骨架搭建与基础网格
+ 1 file changed, 251 insertions(+)
+ create mode 100644 index.html
+```
+
+---
+
+## 任务二：课程数据接入与动态渲染
+
+### 1. 派发任务二指令
+
+骨架与列宽已经锁定，现在让 Agent 注入课程数据与 `rowspan` 合并算法：
+
+```text
+任务一验收通过，骨架与响应式表现非常规整。
+
+请执行【任务二：课程数据接入与动态渲染】：
+- 在 index.html 中注入 REQUIREMENTS.md 定义的 8 门 COURSES 常量数据。
+- 实现渲染逻辑：根据当前周次（1-20）过滤出当周有效课程（all / odd / even）。
+- 实现跨节合并（rowspan）：连续跨多节（span > 1）的课程在表格中合并为一个单元格展示，并正确处理被合并节次的单元格占位，保证表格列宽与对齐不破版。
+- 切换上一周/下一周时自动重新渲染课程。
+- 先不要做冲突判定与警告栏（那是任务三），先不要做 localStorage 持久化。
+- 完成后在终端输出验收建议与快速验证方法。
+```
+
+### 2. 核心算法：单元格占位与 rowspan 防错位
+
+在 HTML 表格中，`rowspan="2"` 会将单元格纵向扩展到下一行。如果下一行仍然输出对应位置的 `<td>`，整行表格就会被硬生生挤出 1 格，导致整体破版！
+
+Agent 采取的占位矩阵算法如下：
+
+:::: code-tabs
+
+@tab 占位跳过算法
+
+```js
+// 构建 5 天 × 6 节的占位网格
+const grid = Array.from({ length: 5 }, () => Array(6).fill(null));
+
+for (const course of activeCourses) {
+  const d = course.day - 1;
+  const s = course.start - 1;
+  
+  // 若已有课程占位（先到先占），暂不放入网格，保留结构完整
+  if (grid[d][s] !== null) continue;
+
+  grid[d][s] = { course, span: course.span };
+  // 被 rowspan 吞并的后续节次，标记为 "skip"
+  for (let k = 1; k < course.span; k++) {
+    if (s + k < 6) grid[d][s + k] = "skip";
+  }
+}
+```
+
+@tab 渲染分支处理
+
+```js
+for (let p = 0; p < 6; p++) {
+  tbodyHtml += `<tr><th class="col-period">第 ${p + 1} 节</th>`;
+  for (let d = 0; d < 5; d++) {
+    const cell = grid[d][p];
+    if (cell === "skip") continue; // 关键：被上一节 rowspan 覆盖的位置不输出 td！
+    if (cell) {
+      tbodyHtml += `<td rowspan="${cell.span}">${renderCard(cell.course)}</td>`;
+    } else {
+      tbodyHtml += `<td></td>`;
+    }
+  }
+  tbodyHtml += `</tr>`;
+}
+```
 
 ::::
 
-`index.html` 末尾按顺序加载：
+### 3. 验收与实测对比
 
-```html
-<script src="data.js"></script>
-<script src="app.js"></script>
+渲染完成后在浏览器中直测，6 行中每行的单元格数加上跨行占位恒等于 6（1 个行头 + 5 列），毫无错位：
+
+![任务二：课程数据渲染与单双周交替展示](/images/case-schedule/task2-preview.png)
+
+手动验证两个核心场景：
+* **单双周切换**：第 1 周（单周）周五 1–2 节显示「操作系统」；点击下一周切到第 2 周（双周），周五 1–2 节无缝切换为「计算机网络」，操作系统消失。
+* **重叠保护**：周三第 1–2 节安排了「大学英语」与「编译原理」，表格优先渲染先录入的「大学英语」，并未发生单元格被撑爆换行。
+
+### 4. 任务二打卡提交
+
+```bash
+💻 [Bash]:
+$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现课程数据渲染与跨节合并"
+
+📋 [Result]:
+[main a31b0fc] feat: 实现课程数据渲染与跨节合并
+ 1 file changed, 153 insertions(+), 54 deletions(-)
 ```
 
-如果顺序反过来，`app.js` 执行时可能找不到 `COURSES`。本版使用普通脚本，避免 `file://` 下 ES 模块加载的额外限制；代价是共享全局变量，所以变量命名要清楚。
+---
 
-## 第 1 步：四文件骨架和位置图
+## 阶段总结
+
+代码以原子级颗粒度推进到了第 4 个 Commit：
 
 ```text
-按 REQUIREMENT.md 创建 index.html、style.css、data.js、app.js。
-data.js 写入以下十门课，字段保持完整：
-1. 高等数学 A(2)，王，B203，周一第1节连2节，all
-2. 数据结构，李，C105，周一第3节连2节，all
-3. 概率论，陈，A302，周二第1节连2节，even
-4. 大学英语(2)，赵，D401，周二第3节连2节，all
-5. 线性代数，孙，B101，周三第1节连2节，odd
-6. 大学物理，周，B101，周三第1节连2节，even
-7. 程序设计实验，吴，机房3，周四第5节连2节，all
-8. 马克思主义基本原理，郑，E201，周四第5节连2节，all
-9. 体育（篮球），冯，体育馆，周五第3节连2节，all
-10. 形势与政策，何，E105，周五第5节连2节，odd
-
-app.js 首步就使用 buildColumns + render：
-- buildColumns 返回五列，每列六个位置
-- 课程格为 { course, span }，空格为 null，被 rowspan 占用的位置为 'skip'
-- render 遇到 'skip' 时不输出 td，课程格输出 rowspan
-本步暂不做周次过滤、切周按钮和冲突提示。
+a31b0fc (HEAD -> main) feat: 实现课程数据渲染与跨节合并
+7446120 feat: 完成课表骨架搭建与基础网格
+95dd8b9 docs: 建立三步实施计划
+9240319 docs: 建立课程表最简需求卡
 ```
 
-放置课程前要检查整个连续节次区间，不能只检查起点：
+接下来，我们进入最有技术深度的第四步：实现两两冲突检测、红色警示标记、警告栏展开与 `localStorage` 越界容错。
 
-```js
-function buildColumns(list) {
-  const cols = DAYS.map(() => Array(PERIODS).fill(null));
-
-  for (const c of list) {
-    const col = cols[c.day - 1];
-    const start = c.start - 1;
-    let canPlace = true;
-
-    for (let k = 0; k < c.span; k++) {
-      if (col[start + k] !== null) canPlace = false;
-    }
-    if (!canPlace) {
-      console.warn('同格课程暂不重复放置：', c.name);
-      continue;
-    }
-
-    col[start] = { course: c, span: c.span };
-    for (let k = 1; k < c.span; k++) col[start + k] = 'skip';
-  }
-  return cols;
-}
-```
-
-渲染时的核心分支是：
-
-```js {2}
-const cell = cols[d][p];
-if (cell === 'skip') continue;
-if (cell) {
-  html += `<td class="course" rowspan="${cell.span}">…</td>`;
-} else {
-  html += '<td class="empty"></td>';
-}
-```
-
-`null` 表示需要输出空格，`'skip'` 表示位置已经被上一行的 `rowspan` 占用，不能再输出一个单元格。
-
-首步验收十条数据完整、表头正确、普通课程位置正确、连上两节的课程合并。同格课程留到下一步处理。验收后提交：
-
-```bash
-git add .
-git commit -m "添加课程数据与rowspan表格"
-```
-
-## 第 2 步：单双周和周次保存
-
-```text
-在第 1 步基础上添加：
-1. matchesWeek(course, week)，集中处理 all / odd / even
-2. 1–20 周循环切换按钮
-3. localStorage 保存周次，无效或不可读时回到第 1 周
-4. render 先过滤当前周课程，再调用 buildColumns
-不要重写位置图结构。
-```
-
-```js
-function matchesWeek(c, week) {
-  if (c.weeks === 'odd') return week % 2 === 1;
-  if (c.weeks === 'even') return week % 2 === 0;
-  return true;
-}
-```
-
-周次从 1 开始，第 1 周是单周。读取存储时用 `Number` 转换，并用 `Number.isInteger` 和范围检查确认有效。
-
-验收周三第 1 节：第 1 周是线性代数，第 2 周是大学物理；切到第 2 周刷新后仍保持。然后提交：
-
-```bash
-git add .
-git commit -m "支持单双周切换并保存周次"
-```
-
-## 第 3 步：数据校验和冲突提示
-
-先过滤非法课程，再检测冲突和布局。非法数据不应参与冲突计算，也不能让整表停止渲染。
-
-```js
-const WEEK_TYPES = ['all', 'odd', 'even'];
-const courseSpan = (c) => c.span === undefined ? 1 : c.span;
-
-function validCourse(c) {
-  const span = courseSpan(c);
-  return c && ['name', 'teacher', 'room'].every((key) => typeof c[key] === 'string')
-    && Number.isInteger(c.day) && c.day >= 1 && c.day <= DAYS.length
-    && Number.isInteger(c.start) && c.start >= 1 && c.start <= PERIODS
-    && Number.isInteger(span) && span >= 1 && c.start + span - 1 <= PERIODS
-    && WEEK_TYPES.includes(c.weeks);
-}
-```
-
-对每门非法课程调用 `console.warn` 并跳过。漏写 `span` 可按 1 处理，`span: 0` 和 `weeks: 'oddd'` 则属于非法数据。
-
-冲突要同时满足同一天、节次相交、周次有交集：
-
-```js
-function overlap(a, b) {
-  if (a.day !== b.day) return false;
-  if (a.start >= b.start + b.span || b.start >= a.start + a.span) return false;
-  if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
-  return true;
-}
-```
-
-可以用四种情况检查判断：
-
-| 课程 A | 课程 B | 是否冲突 |
-| --- | --- | --- |
-| 周三第 1 节连 2 节，odd | 同时间，even | 否，周次没有交集 |
-| 周三第 1 节连 2 节，all | 同时间，odd | 是 |
-| 周三第 1 节连 2 节 | 周三第 3 节开始 | 否，只是首尾相接 |
-| 周三第 1 节连 3 节 | 周三第 3 节开始 | 是 |
-
-`findConflicts` 返回冲突课程对。`buildColumns(list, conflicts)` 先把涉及冲突的课程标为 `conflict: true`，再按原规则布局；后到课程不单独占格，但名字仍出现在警告中。警告写“N 对课程冲突”。
-
-课程名、老师和教室通过 `innerHTML` 输出前要转义，或改用 DOM 节点和 `textContent`。完成版使用了 `escapeHTML`，避免课程文本被当成标签。
-
-验收第 6 条和一项非法数据测试后提交：
-
-```bash
-git add .
-git commit -m "添加数据校验和冲突提示"
-```
-
-## 第 4 步：窄屏与合法加课
-
-```css
-.scroller { overflow-x: auto; }
-table { min-width: 560px; }
-```
-
-滚动样式放在表格外层容器，`min-width` 防止列被压成逐字换行。在 `data.js` 临时加入一门合法课程：
-
-```js
-{ name: '测试选修', teacher: '测', room: 'A101', day: 2, start: 5, span: 1, weeks: 'all' },
-```
-
-刷新后应出现在周二第 5 节，其他运行文件不用改。验证完删除这门测试课，再刷新确认恢复。最后提交窄屏样式：
-
-```bash
-git add .
-git commit -m "适配窄屏课程表"
-```
-
-四个提交对应四个可恢复节点。`render` 可以保留 `if (cell === 'skip')` 等展示分支，但周次匹配、课程位置和冲突关系应由各自的函数计算，不要全塞进 HTML 拼接循环。
-
-[下一步：排查四类典型问题](/case-schedule/debug/){.read-more}
+[下一步：盯差量与修边界（任务三）](/case-schedule/debug/){.read-more}
