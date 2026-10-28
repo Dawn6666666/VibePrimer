@@ -5,213 +5,308 @@ permalink: /case-timer/
 createTime: 2026/10/28 09:53:14
 ---
 
-第一个案例只做一个本地网页：25 分钟倒计时、开始/暂停/继续、重置和今日完成数。功能不多，但会经过需求、计划、生成、调试和交付的完整过程。
+第一个案例制作一个极简本地番茄钟网页：25 分钟倒计时、开始/暂停/继续/重置、归零修改标题并累计今日完成数。没有多余的音频或设置页，专注跑通「想清楚 → 定计划 → 生成并运行 → 盯差量与修边界 → 检查并交付」的完整闭环。
 
 ## 先看完成版
 
-::::: demo title="完成版番茄钟" desc="可以开始、暂停、继续和重置。今日完成数会按日期保存在当前浏览器中。"
+::::: demo title="完成版番茄钟" desc="四态状态机驱动，支持开始、暂停、继续和重置。今日完成数按本地日期保存在浏览器中，支持跨天自动归零与异常容错。"
 
 :::: code-tabs
 
 @tab HTML
 
 ```html
-<div class="wrap">
-  <div id="display">25:00</div>
-  <div class="row">
-    <button id="toggle">开始</button>
-    <button id="reset">重置</button>
+<main class="app">
+  <div class="timer" id="timer">25:00</div>
+  <div class="actions">
+    <button type="button" class="btn btn--primary" id="primary">开始</button>
+    <button type="button" class="btn" id="reset">重置</button>
   </div>
-  <p class="today">今日完成 <span id="count">0</span> 个</p>
-</div>
+  <p class="count">今日完成：<span id="count">0</span> 次</p>
+</main>
 ```
 
 @tab CSS
 
 ```css
-body {
-  margin: 0;
-  padding: 32px 16px;
-  display: grid;
-  place-items: center;
-  font-family: system-ui, sans-serif;
-  background: #0f1115;
-  color: #e8ecf3;
+:root {
+  --bg: #14151a;
+  --fg: #ecebe8;
+  --muted: #8a8a94;
+  --line: #2b2c34;
 }
-.wrap { text-align: center; }
-#display {
-  font-size: clamp(48px, 14vw, 72px);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 2px;
-}
-.row {
+
+.app {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 40px 24px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, sans-serif;
+  border-radius: 16px;
+}
+
+.timer {
+  font-size: clamp(48px, 14vw, 96px);
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
   gap: 12px;
-  justify-content: center;
-  margin-top: 24px;
 }
-button {
-  padding: 10px 24px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #2b3140;
-  background: #1a1f2b;
-  color: #e8ecf3;
+
+.btn {
+  min-width: 96px;
+  padding: 10px 22px;
+  font: inherit;
+  font-size: 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
+  transition: color .15s, border-color .15s, background-color .15s;
 }
-button:hover { background: #232a38; }
-.today { margin-top: 28px; color: #8b95a7; font-size: 14px; }
+
+.btn:hover { color: var(--fg); border-color: #43444e; }
+.btn:active { transform: translateY(1px); }
+
+.btn--primary {
+  background: var(--fg);
+  border-color: var(--fg);
+  color: #14151a;
+  font-weight: 500;
+}
+
+.btn--primary:hover { background: #fff; border-color: #fff; }
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.count {
+  margin: -8px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
 ```
 
 @tab JavaScript
 
 ```js
-const TOTAL = 25 * 60
-const KEY = 'pomo-today-v1'
-const display = document.querySelector('#display')
-const toggle = document.querySelector('#toggle')
-const reset = document.querySelector('#reset')
-const countEl = document.querySelector('#count')
+const DURATION_SECONDS = 25 * 60;
+const DEFAULT_TITLE = "番茄钟";
+const REST_TITLE = "休息一下";
+const STORAGE_KEY = "pomodoro.daily";
 
-let remain = TOTAL
-let endAt = 0
-let tick = null
-let running = false
+const timerEl = document.getElementById("timer");
+const primaryBtn = document.getElementById("primary");
+const resetBtn = document.getElementById("reset");
+const countEl = document.getElementById("count");
 
-function today() {
-  const d = new Date()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${d.getFullYear()}-${month}-${day}`
+let state = "idle"; // idle | running | paused | finished
+let remaining = DURATION_SECONDS;
+let intervalId = null;
+let completedCount = 0;
+
+const PRIMARY_LABEL = {
+  idle: "开始",
+  running: "暂停",
+  paused: "继续",
+  finished: "开始",
+};
+
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return String(minutes).padStart(2, "0") + ":" + String(seconds).padStart(2, "0");
 }
 
-function loadToday() {
-  try {
-    const data = JSON.parse(localStorage.getItem(KEY))
-    if (data && data.date === today() && Number.isInteger(data.count) && data.count >= 0) {
-      return data.count
-    }
-  } catch {
-    // 存储不可用或内容损坏时，页面仍可以计时
-  }
-  return 0
+function todayKey() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return now.getFullYear() + "-" + month + "-" + day;
 }
 
-let currentDate = today()
-let done = loadToday()
-countEl.textContent = done
-
-function saveToday() {
+function loadCount() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ date: currentDate, count: done }))
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return 0;
+    const saved = JSON.parse(raw);
+    if (!saved || saved.date !== todayKey()) return 0;
+    const count = Number(saved.count);
+    return Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
   } catch {
-    // 本次页面内继续计数，但不承诺持久保存
+    return 0;
   }
+}
+
+function saveCount() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: todayKey(), count: completedCount }));
+  } catch {}
 }
 
 function render() {
-  const m = String(Math.floor(remain / 60)).padStart(2, '0')
-  const s = String(remain % 60).padStart(2, '0')
-  display.textContent = `${m}:${s}`
-  document.title = `${m}:${s} · 番茄钟`
+  timerEl.textContent = formatTime(remaining);
+  primaryBtn.textContent = PRIMARY_LABEL[state];
+  primaryBtn.disabled = state === "finished";
+  countEl.textContent = String(completedCount);
 }
 
-function clearTick() {
-  clearInterval(tick)
-  tick = null
+function startTicking() {
+  clearInterval(intervalId);
+  intervalId = setInterval(tick, 1000);
 }
 
-function finish() {
-  running = false
-  clearTick()
-  remain = 0
-  render()
+function stopTicking() {
+  clearInterval(intervalId);
+  intervalId = null;
+}
 
-  if (today() !== currentDate) {
-    currentDate = today()
-    done = 0
+function tick() {
+  remaining -= 1;
+  if (remaining <= 0) {
+    stopTicking();
+    remaining = 0;
+    state = "finished";
+    document.title = REST_TITLE;
+    completedCount += 1;
+    saveCount();
+    render();
+    return;
   }
-  done += 1
-  saveToday()
-  countEl.textContent = done
-  document.title = '休息一下'
-  toggle.textContent = '开始'
+  render();
 }
 
-function update() {
-  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
-  if (remain === 0) return finish()
-  render()
+function reset() {
+  stopTicking();
+  remaining = DURATION_SECONDS;
+  state = "idle";
+  document.title = DEFAULT_TITLE;
+  render();
 }
 
-function start() {
-  if (running) return
-  if (remain === 0) remain = TOTAL
-  running = true
-  endAt = Date.now() + remain * 1000
-  toggle.textContent = '暂停'
-  tick = setInterval(update, 250)
-  update()
-}
+primaryBtn.addEventListener("click", () => {
+  if (state === "idle" || state === "paused") {
+    state = "running";
+    startTicking();
+    render();
+  } else if (state === "running") {
+    stopTicking();
+    state = "paused";
+    render();
+  }
+});
 
-function pause() {
-  if (!running) return
-  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
-  if (remain === 0) return finish()
-  running = false
-  clearTick()
-  toggle.textContent = '继续'
-  render()
-}
+resetBtn.addEventListener("click", reset);
 
-toggle.addEventListener('click', () => {
-  if (running) pause()
-  else start()
-})
-
-reset.addEventListener('click', () => {
-  running = false
-  clearTick()
-  remain = TOTAL
-  toggle.textContent = '开始'
-  render()
-})
-
-render()
+completedCount = loadCount();
+render();
 ```
 
 ::::
 :::::
 
-本地项目把 HTML、CSS 和 JavaScript 放进同一个 `index.html`，页签只是为了方便阅读。完成版约百行，无外部依赖，可以直接双击打开。
+## 最终交付物与目录结构
 
-## 每一步练什么
+整个案例最终交付 3 个核心文件与 1 个忽略规则，纯前端原生实现，无 node_modules、无构建打包，任意浏览器双击直接运行：
 
-| 步骤 | 内容 | 页面 |
-| --- | --- | --- |
-| 想清楚 | 写需求卡，确定刷新、归零和计数规则 | [需求卡](/case-timer/requirement/) |
-| 定计划 | 审查文件、任务顺序和额外功能 | [先交方案](/case-timer/prompt/) |
-| 生成并运行 | 查看 diff，运行并记录实际行为 | [跑起来](/case-timer/run/) |
-| 发现问题并修改 | 处理重复定时器、后台计时和本地存储 | [调试](/case-timer/bug/) |
-| 检查并交付 | 功能验收、边界测试和 README | [交付](/case-timer/finish/) |
+:::: file-tree
+- pomodoro/
+  - index.html # 单文件全部实现（HTML + 内联 CSS + 原生 JS）
+  - REQUIREMENT.md # 第一步：Agent 访谈收敛出的最简需求卡
+  - TODO.md # 第二步：拆分的三步实施计划与手动验收方案
+  - .gitignore # 收尾：忽略本地开发截图与临时目录
+::::
 
-## 为什么选这个项目
+## 全流程 Git 提交历史
 
-番茄钟包含三类常见问题。定时功能要考虑浏览器后台节流；开始、暂停和归零涉及状态转换；今日完成数涉及本地保存、数据格式和日期变化。后面做其他页面时，这些问题还会以不同形式出现。
+在真正的 Agent 结对编程中，**每一次需求变更、计划落盘或单任务交付，都伴随着一次清晰的 Git 提交**。以下是本项目真实跑通的完整线性提交历史：
 
-参考用时约 2.5 小时，不包含环境安装。第一次做如果更慢，可以先完成当前小步骤，不必压缩验收时间。
+:::: timeline
+=== 2026-10-28 · 需求锁定
+**`e629d7c` docs: 建立番茄钟最简需求卡**
+- 通过结构化需求访谈，锁定 25 分钟倒计时与单文件交付
+- 明确拒绝音频、图表与复杂设置，确立三条验收基准
 
-## 开始之前
+=== 2026-10-28 · 计划锁定
+**`74b2ef9` docs: 建立三步实施计划**
+- 拆分为骨架搭建、倒计时状态流转、持久化计数三个微任务
+- 明确禁止提前写代码，为每个任务预设手动验收操作
 
-确认 VS Code、Git 和 Agent 已按第 0 章完成验收。Git 只需要安装并配置作者信息，项目仓库现在创建。
+=== 2026-10-28 · 任务一交付
+**`17db13e` feat: 完成骨架搭建与静态样式**
+- 交付干净的单文件静态骨架，使用 flex 全屏居中与 tabular-nums
+- `<script>` 数量为 0，严格防止逻辑偷跑
 
-在 `vibe-lab` 下新建 `pomodoro`，用 VS Code 打开这个项目文件夹，然后在终端执行：
+=== 2026-10-28 · 任务二交付
+**`6764dc2` feat: 实现核心倒计时与四态状态流转**
+- 接入四态状态机（idle / running / paused / finished）
+- 单定时器防抖防加速，归零停在 00:00 并自动更新网页标题
+
+=== 2026-10-28 · 任务三交付
+**`182358b` feat: 完成今日完成数持久化与跨天重置**
+- 单 key 存储今日完成数，按本地时区计算当天日期
+- 实现损坏 JSON 与隐私模式的三层容错降级，不持久化倒计时进度
+
+=== 2026-10-28 · 收尾交付
+**`dd0478a` chore: 忽略本地截图目录**
+- 新建 .gitignore 隔离过程开发资产，完成项目交付验收
+::::
+
+## 五步实战演练路线
+
+按照真实的执行节奏，跟随以下五步亲手演练：
+
+::: steps
+1. **[第一步：想清楚（把它问清楚）](/case-timer/requirement/)**
+   - 不给模糊指令，让 Agent 提 10 个关键问题收敛边界，落盘 `REQUIREMENT.md` 并建立根提交。
+
+2. **[第二步：定计划（让它先交方案）](/case-timer/prompt/)**
+   - 拒绝直接生成全量代码，强制输出三步分解实施清单与验证动作，生成 `TODO.md`。
+
+3. **[第三步：生成并运行（单任务推进）](/case-timer/run/)**
+   - 锁定任务一，只做静态骨架与防抖排版，完成第一次浏览器直测与打卡。
+
+4. **[第四步：盯差量与修边界（调试与防御）](/case-timer/bug/)**
+   - 推进任务二与任务三，审查状态机流转、防定时器连击加速、本地时区与容错降级。
+
+5. **[第五步：检查与交付（全量验收与收工）](/case-timer/finish/)**
+   - 跑完 8 项边界验收，整理 .gitignore，回看干净的 Git 提交树。
+:::
+
+## 开始之前：环境准备
+
+确认 VS Code、Git 和 Agent 已完成配置。在终端中新建 `pomodoro` 目录并初始化 Git 仓库，然后用 VS Code 打开该工作区：
 
 ```bash
+mkdir -p ~/Code/pomodoro
+cd ~/Code/pomodoro
 git init
+code .
 ```
 
-再新建 `.gitignore`，至少写入 `.env` 和 `.DS_Store`。本项目不需要 `node_modules`，但以后使用依赖时也应忽略它。
+![终端初始化与打开工作区](/images/case-timer/init-terminal.png)
+
+用 VS Code 打开后，确认两处状态：
+1. **左侧资源管理器**：当前打开的根目录是否为干净的 `pomodoro` 文件夹。
+2. **右侧 Agent 侧边栏**：展开面板，确认处于 **Agent 模式**。
+
+![VS Code 打开 pomodoro 目录并就绪 Pi Agent](/images/case-timer/vscode-pi-ready.png)
+
+准备就绪后，直接进入第一步：
 
 [下一步：写需求卡](/case-timer/requirement/){.read-more}
