@@ -256,31 +256,53 @@ createTime: 2026/10/28 10:12:00
 这里统计的是“课程对数”。三门课两两重叠会形成 3 对冲突，不写成“3 处”。
 ::::
 
-## 和番茄钟相比多了什么
+## 多文件架构演进
 
-| | 番茄钟 | 课程表 |
-| --- | --- | --- |
-| 数据 | 剩余时间、运行状态、每日计数 | 十门课，每门七个字段 |
-| 界面 | 数字和按钮 | 6 × 5 表格与合并单元格 |
-| 主要风险 | 状态和时序 | 字段、位置、周次与冲突 |
-| 运行文件 | 一个 `index.html` | `index.html`、`style.css`、`data.js`、`app.js` |
+和番茄钟的单文件相比，课程表拆分成了关注点分离的四个运行文件：
 
-多文件项目需要知道每个文件的职责。修改课程数据时只改 `data.js`；计算位置和更新页面由 `app.js` 负责。
+::: file-tree{title="课程表项目结构"}
+- schedule/
+  - index.html       // 页面结构与各模块引入
+  - style.css        // 表格网格排版与冲突高亮样式
+  - data.js          // 原始数据数组 COURSES，仅维护数据
+  - app.js           // 周次过滤、冲突判定与 DOM 渲染
+  - REQUIREMENT.md   // 字段约束与验收规则
+  - TODO.md          // 分步实施清单
+  - README.md        // 启动与自测说明
+:::
+
+修改课程数据时只动 `data.js`；计算周次与处理单元格合并由 `app.js` 负责，这样可以让单次交给 Agent 的上下文更加聚焦。
 
 ## 学习安排
 
-| 小节 | 内容 | 参考用时 |
-| --- | --- | --- |
-| [需求分析](/case-schedule/requirement/) | 确定字段、冲突规则和验收标准 | 25–35 分钟 |
-| [定计划](/case-schedule/plan/) | 安排文件和实施顺序 | 15–20 分钟 |
-| [生成并运行](/case-schedule/build/) | 四个小迭代，分别验收和提交 | 50–70 分钟 |
-| [调试](/case-schedule/debug/) | 排查数据、表格和冲突判断 | 40–60 分钟 |
-| [交付](/case-schedule/ship/) | 边界测试、README 和可选部署 | 30–40 分钟 |
+::: steps{title="从数据到界面的开发流程"}
 
-完整实践通常需要约 3 小时，可以分两次完成。
+1. **[需求分析](/case-schedule/requirement/)**
+   确定课程对象的七个核心字段、单双周过滤逻辑、重叠冲突规则与验收标准。
+
+2. **[定计划](/case-schedule/plan/)**
+   拆分文件职责，制定四个由浅入深的执行批次。
+
+3. **[生成并运行](/case-schedule/build/)**
+   分步完成空表结构、数据过滤、单元格合并与冲突告警，每步验收后独立提交。
+
+4. **[调试常见问题](/case-schedule/debug/)**
+   排查单双周边界溢出、表格塌陷和重叠两两判定的边界漏洞。
+
+5. **[检查与交付](/case-schedule/ship/)**
+   完成无痕浏览器测试、清理控制台临时输出，补全使用说明。
+
+:::
 
 ## 开工准备
 
-在 `vibe-lab` 下新建 `schedule`，用 VS Code 打开它，再执行 `git init`。本章会创建四个运行文件，另有 `REQUIREMENT.md`、`TODO.md` 和 README 等项目文档。
+在 `vibe-lab` 目录下新建 `schedule` 文件夹，使用 VS Code 打开并在该目录下执行 `git init`：
+
+```bash
+cd ~/dev/vibe-lab       # Windows 请换用对应的开发路径
+mkdir schedule
+cd schedule
+git init
+```
 
 [下一步：先定数据](/case-schedule/requirement/){.read-more}

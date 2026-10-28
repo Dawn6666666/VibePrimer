@@ -87,19 +87,59 @@ const COURSES = [
 ];
 ```
 
-本案例使用两个普通 `<script>` 标签，先加载 `data.js`，再加载 `app.js`。这样与双击打开的目标一致。`export` / `import` 的 ES 模块在 `file://` 下可能受到浏览器本地模块加载限制，本版不采用。
+本案例使用两个普通 `<script>` 标签，先加载 `data.js`，再加载 `app.js`。这样与双击打开的目标一致。`export` / `import` 的 ES 模块在 `file://` 协议下可能受到本地模块加载策略限制，本版不采用。
 
-| 字段 | 类型 | 规则 |
-| --- | --- | --- |
-| `name` | 字符串 | 课程名，按普通文本转义后显示 |
-| `teacher` | 字符串 | 老师姓名或匿名简称 |
-| `room` | 字符串 | 教室或地点 |
-| `day` | 整数 | 1–5，周一到周五 |
-| `start` | 整数 | 1–6，开始节次 |
-| `span` | 整数 | 至少 1，且 `start + span - 1 <= 6` |
-| `weeks` | 字符串 | 只能是 `all` / `odd` / `even` |
+### 课程数据字段契约
 
-建议七项都写全。程序可以把漏写的 `span` 当作 1 来容错，但 `span: 0`、越界位置和未知的 `weeks` 值应跳过并调用 `console.warn`，不能在不同函数里各自猜测含义。
+一门课必须具备以下七个字段：
+
+:::: field-group
+
+::: field name
+@type string
+@required
+课程名称，渲染时会进行文本转义，防止意外注入。
+:::
+
+::: field teacher
+@type string
+@required
+授课教师姓名或简称。
+:::
+
+::: field room
+@type string
+@required
+授课教室或实验机房地点。
+:::
+
+::: field day
+@type integer
+@required
+星期几，取值范围 1–5，对应周一到周五。
+:::
+
+::: field start
+@type integer
+@required
+课程开始节次，取值范围 1–6。
+:::
+
+::: field span
+@type integer
+@required
+连续上课节数，至少为 1，且必须满足 `start + span - 1 <= 6`。
+:::
+
+::: field weeks
+@type enum
+@required
+周次规则，限定取值为 `'all'`（每周）、`'odd'`（单周）、`'even'`（双周）之一。
+:::
+
+::::
+
+建议录入时七项都写全。程序可以把漏写的 `span` 当作 1 处理，但遇到 `span: 0`、超出节次范围或未知的 `weeks` 规则时应跳过并打印 `console.warn`，避免在渲染时破坏表格结构。
 
 老师和教室写错通常不会触发程序报错，所以仍要对照原始课表逐门核对。课程文本即使包含 `<`、`&` 等字符，也应按文本显示，不能直接当成 HTML 执行。
 

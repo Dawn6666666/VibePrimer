@@ -26,7 +26,8 @@ export default defineUserConfig({
     },
 
     markdown: {
-      // 交互与排版用得到的那几样，其余一律关掉，构建更快
+      fileTree: true,
+      codeTabs: { icon: true },
       chat: true,
       timeline: true,
       collapse: true,
