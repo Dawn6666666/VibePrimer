@@ -16,6 +16,20 @@ createTime: 2026/10/28 10:20:00
 | `data.js` | `const COURSES = [...]`，只保存课程数据 |
 | `app.js` | 校验、计算位置、冲突检测、渲染和切周 |
 
+项目文件放在同一个目录，不需要安装依赖：
+
+:::: file-tree
+
+- schedule
+  - index.html # 双击打开的入口
+  - style.css # 样式
+  - data.js # 课程数据，先加载
+  - app.js # 页面逻辑，后加载
+  - REQUIREMENT.md # 需求与验收标准
+  - TODO.md # 当前进度
+
+::::
+
 `index.html` 末尾按顺序加载：
 
 ```html
@@ -76,7 +90,7 @@ function buildColumns(list) {
 
 渲染时的核心分支是：
 
-```js
+```js {2}
 const cell = cols[d][p];
 if (cell === 'skip') continue;
 if (cell) {

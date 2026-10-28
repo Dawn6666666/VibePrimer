@@ -81,9 +81,12 @@ console.table([1, 2].map((week) => ({
 
 标题和症状要与错误代码对应。下面这段代码的问题是“只要周次字符串不同，就判为不冲突”：
 
-```js
-if (a.weeks !== b.weeks) return false;
+```diff
+- if (a.weeks !== b.weeks) return false;
++ if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
 ```
+
+红色行是要替换的旧判断，绿色行是新判断。实际代码里只保留新的一行，不要把 `+`、`-` 一起复制进去。
 
 它确实能排除 `odd` 和 `even`，却也会错误排除 `all` 和 `odd`。每周都有的一门课，与单周课在单周当然会重叠。
 

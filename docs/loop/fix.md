@@ -95,6 +95,50 @@ Uncaught TypeError: Cannot read properties of null (reading 'textContent')
 
 这样你能先排除方向，再让它做有针对性的修改。即使它给出的排序不合理，验证结果也会提供新线索。
 
+## 做一次诊断练习：按钮为什么没反应
+
+假设页面能打开，但点“开始”没有反应，Console 显示：
+
+```text
+Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')
+```
+
+代码里有这两行：
+
+```html
+<button id="start">开始</button>
+```
+
+```js
+document.querySelector('#star').addEventListener('click', start)
+```
+
+先找出两个名字的差别，再判断是否还需要安装依赖或重写计时器。
+
+:::: details 诊断过程和最小修改
+
+`querySelector('#star')` 在寻找 `id="star"` 的元素；页面实际写的是 `id="start"`。查询结果是 `null`，因此还没绑定点击事件就已经报错了。
+
+```diff
+- document.querySelector('#star').addEventListener('click', start)
++ document.querySelector('#start').addEventListener('click', start)
+```
+
+先修选择器，保存并刷新，再检查 Console 和按钮行为。这里假设 `start` 函数已经定义，且脚本在按钮元素之后执行。如果改完仍报错，就读新的错误，继续核对这两个条件。
+
+这次实验只能解释这段示例，不能据此认定所有 `null` 错误都是拼写问题。
+
+::::
+
+把诊断交给 Agent 时，可以这样限制范围：
+
+```text
+页面可打开，点击开始无反应。报错和相关代码如下。
+先核对 DOM 选择器、元素是否存在、脚本执行顺序。
+找到证据后再提出最小修改，不安装依赖，不改样式，不重写计时逻辑。
+修复后告诉我该怎样验证事件绑定和计时功能。
+```
+
 ## 连续三次修改仍没好
 
 三次不是硬性定律，而是一个提醒：你们可能一直在验证同一个错误假设。先保存失败结论，不要继续在旧补丁上叠加修改。

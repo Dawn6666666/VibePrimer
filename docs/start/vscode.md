@@ -13,15 +13,17 @@ createTime: 2026/10/28 09:50:47
 
 其他编辑器同样可以完成本指南的练习，不必为了跟教程一致更换已经熟悉的工具。
 
-## 装
+## 下载和安装
+
+打开 [code.visualstudio.com](https://code.visualstudio.com/)，下载适合你系统的安装包。不要从来源不明的软件站下载。下面只看自己使用的系统即可。
+
+:::::: tabs
+
+@tab Windows
 
 ::::: steps
 
-1. **下载**
-
-   打开 [code.visualstudio.com](https://code.visualstudio.com/)，下载适合你系统的安装包。不要从来源不明的软件站下载。
-
-2. **安装（Windows）**
+1. **运行安装包**
 
    运行安装包时，建议勾上：
 
@@ -32,27 +34,39 @@ createTime: 2026/10/28 09:50:47
 
    如果最后一项没勾，终端里的 `code .` 可能提示找不到命令。
 
-3. **安装（macOS）**
+2. **完成安装**
+
+   启动 VS Code，能看到欢迎页即可。安装后新开的终端才能读取更新的 PATH。
+
+:::::
+
+@tab macOS
+
+::::: steps
+
+1. **移动到应用程序**
 
    解压后把 `Visual Studio Code.app` 拖进「应用程序」文件夹。
 
-   想在终端里用 `code .`，打开 VS Code，按 `Cmd+Shift+P`，输入 `shell command`，选 **Shell Command: Install 'code' command in PATH**。
-
    如果系统提示无法验证开发者，先确认安装包确实来自 VS Code 官网，再按苹果的安全提示处理。这个提示不是每次安装都会出现。
 
-4. **安装（Linux）**
+2. **启用终端命令**
 
-   官网提供 `.deb` 和 `.rpm` 等安装包，请选择与你的发行版对应的格式，并按官方说明安装。安装后在终端运行 `code --version`，确认命令可用。
-
-5. **装中文界面（可选）**
-
-   按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准发布者 Microsoft，点 Install，然后重启。
-
-6. **确认能打开**
-
-   启动 VS Code，能看到欢迎页即可。版本会不断更新，只要仍受官方支持，就不必为了教程追某一个版本号。
+   打开 VS Code，按 `Cmd+Shift+P`，输入 `shell command`，选 **Shell Command: Install 'code' command in PATH**。完成后重开终端，就可以使用 `code .`。
 
 :::::
+
+@tab Linux
+
+官网提供 `.deb` 和 `.rpm` 等安装包，请选择与你的发行版对应的格式，并按官方说明安装。安装后在终端运行 `code --version`，确认命令可用。
+
+::::::
+
+### 中文界面（可选）
+
+按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准发布者 Microsoft，点 Install，然后重启。
+
+版本会不断更新，只要仍受官方支持，就不必为了教程追某一个版本号。
 
 ## 装完后建议调整的设置
 

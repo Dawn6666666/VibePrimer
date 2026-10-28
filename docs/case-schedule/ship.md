@@ -73,7 +73,7 @@ createTime: 2026/10/28 10:34:00
 
 ## 部署方式
 
-:::: code-tabs
+:::: tabs
 
 @tab 压缩包
 

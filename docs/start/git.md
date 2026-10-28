@@ -9,35 +9,35 @@ createTime: 2026/10/28 09:51:09
 
 ## 装
 
-::::: steps
+:::: tabs
 
-1. **Windows**
+@tab Windows
 
-   去 [git-scm.com](https://git-scm.com/) 下载 64-bit 安装包。询问默认编辑器时，可以选 **Use Visual Studio Code as Git's default editor**，其余选项先保留默认值。
+去 [git-scm.com](https://git-scm.com/) 下载适合电脑的安装包。询问默认编辑器时，可以选 **Use Visual Studio Code as Git's default editor**，其余选项先保留默认值。安装后重新打开终端，后面的命令练习可以选择随 Git 安装的 **Git Bash**。
 
-2. **macOS**
+@tab macOS
 
-   打开终端（`Cmd+空格`，输入 Terminal），运行：
+打开终端（`Cmd+空格`，输入 Terminal），运行：
 
-   ```bash
-   xcode-select --install
-   ```
+```bash
+xcode-select --install
+```
 
-   按弹窗提示安装命令行工具。已经使用 Homebrew 的话，也可以运行 `brew install git`。
+按弹窗提示安装命令行工具。已经使用 Homebrew 的话，也可以运行 `brew install git`。
 
-3. **Linux**
+@tab Linux
 
-   Debian / Ubuntu 可以运行 `sudo apt update && sudo apt install git`。其他发行版使用各自的包管理器，或参考 [Git 官方安装说明](https://git-scm.com/downloads/linux)。
+Debian / Ubuntu 可以运行 `sudo apt update && sudo apt install git`。其他发行版使用各自的包管理器，或参考 [Git 官方安装说明](https://git-scm.com/downloads/linux)。
 
-4. **验证**
+::::
 
-   ```bash
-   git --version
-   ```
+三个系统安装完成后，都在新开的终端中验证：
 
-   看到 `git version 2.x.x` 就说明命令已经可用。
+```bash
+git --version
+```
 
-:::::
+看到 `git version 2.x.x` 就说明命令已经可用。
 
 ## 配置提交作者信息
 

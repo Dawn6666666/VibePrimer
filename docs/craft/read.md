@@ -87,6 +87,48 @@ render()
   why="let count = state.count + 1 只在回调内部创建临时变量。render() 读取的是 state.count，它仍然是 0。应更新 state.count 后再调用 render()。"
 />
 
+## 亲手试：变量变了，页面就会变吗
+
+下面的小页面可以直接操作。先点几次“只改变量”，观察屏幕，再点“把变量显示出来”。这个例子使用原生 JavaScript，没有框架帮你自动更新页面。
+
+::::: demo title="数据和显示是两件事" desc="先累加，再显示。刷新示例后从 0 开始，不保存数据。"
+
+```html
+<div class="counter-lab">
+  <p aria-live="polite">页面显示：<strong id="lab-value">0</strong></p>
+  <button id="lab-add" type="button">只改变量 +1</button>
+  <button id="lab-render" type="button">把变量显示出来</button>
+  <p id="lab-hint" aria-live="polite">还没有修改变量。</p>
+</div>
+<style>
+  .counter-lab { padding: 20px; font-family: system-ui, sans-serif; }
+  .counter-lab button { padding: 10px 14px; margin: 4px; cursor: pointer; }
+</style>
+<script>
+  let count = 0
+  document.querySelector('#lab-add').addEventListener('click', () => {
+    count += 1
+    document.querySelector('#lab-hint').textContent = '变量已增加，页面上的数字还没更新。'
+  })
+  document.querySelector('#lab-render').addEventListener('click', () => {
+    document.querySelector('#lab-value').textContent = count
+    document.querySelector('#lab-hint').textContent = '现在显示的是变量的当前值。'
+  })
+</script>
+```
+
+:::::
+
+:::: details 为什么连点三次以后，数字会从 0 跳到 3？
+
+三个点击都执行了 `count += 1`，变量已经是 3；但屏幕上的文本仍然是 0。第二个按钮才执行 `textContent = count`，把当前值写进页面。
+
+回到前面的错误代码，问题又不同：它只创建了局部变量，连 `state.count` 都没有改。排查时要分别确认“数据是否改变”和“显示是否更新”。
+
+::::
+
+现在试着修改示例：让第一个按钮在增加变量后立刻更新数字。改之前先指出要移动或补充哪一行，改完再运行。可以复制成独立 HTML 文件练习，不必改教程站源码。
+
 ## 注释应该写什么
 
 逐行复述代码的注释通常没有帮助：
