@@ -1,242 +1,226 @@
 ---
-title: 三个 bug
+title: 三个 bug 和一个边界检查
 icon: carbon:debug
 permalink: /case-timer/bug/
 createTime: 2026/10/28 10:01:41
 ---
 
-这一节是全篇最像真实开发的部分。
+下面按“复现、提出假设、修改、复测”的顺序处理三个主要问题，最后检查归零边界。代码以本篇的简化错误版为例；如果你的变量名不同，先读懂对应职责，不要只复制片段。
 
-上一节那个版本"能跑"。能跑的意思是：你点一下，数字会动。它离"能信"还差三个 bug——而且这三个 bug 的共同点是：**不试就发现不了。**
+## Bug 1：重复开始导致加速
 
-## Bug 1：点两次开始，时间跑两倍
-
-### 复现
+### 复现与提问
 
 ```text
-操作：点「开始」→ 再点一次「开始」
-期望：没有任何变化（已经在跑了）
-实际：数字每秒减 2
-频率：每次都能复现
+操作：打开页面 → 开始 → 再点一次开始
+期望：已经运行时不会创建第二个计时器
+实际：剩余时间每秒约减少 2
+频率：每次都出现
 ```
 
-### 我的第一个错误报告
-
-我一开始是这么问的：
-
-> 点了开始之后时间走得有点快
-
-它回了三句"可能是浏览器性能问题""建议检查设备时间"——**全是废话**。
-
-因为"有点快"不是信息。它没有复现步骤，没法定位。
-
-### 改成这样
+把“有点快”改成上面的报告，再补充你的假设：
 
 ```text
-bug：点两次「开始」，倒计时速度变成两倍。
-
-复现：打开页面 → 点开始 → 立即再点一次开始 → 数字每秒减 2。
-期望：第二次点击不应该产生任何影响。
-频率：每次都这样。
-
-我的猜测：每点一次就新建了一个 setInterval，
-但 timerId 只保存了最后一个，前面的清不掉。
-
-先不要改代码。告诉我最可能的原因，以及怎么验证。
+我猜测每次点击都新建了 setInterval，timerId 只保留最后一个。
+先不要改代码。说明怎样验证这个假设，再给出同时覆盖开始、暂停、继续和重置的最小修改。
 ```
 
-### 它的诊断
+如果在 `setInterval` 赋值之后记录 `timerId`，连续点击会看到不同的定时器句柄。把日志放在赋值之前，只能看到旧值。
 
-::: chat title="诊断"
+### 修复
 
-{Claude}
-
-你猜对了。
-
-`#start` 的点击回调里直接 `setInterval(...)`，没有检查是否已经有定时器在跑。第二次点击创建了第二个 interval，两个都在减 `seconds`，所以是每秒减 2。而且 `timerId` 被第二次赋值覆盖了，第一个 interval 的 id 丢了，你再也 clear 不到它。
-
-验证方法：在回调开头加 `console.log('tick created', timerId)`，连点两次，你会在控制台看到同一个按钮创建了两次定时器。
-
-{}
-
-修吧。但别只加一个 if 判断，把状态理清楚。
-
-:::
-
-### 修复的关键：状态只有一个来源
-
-最省事的修法是加个 `if (timerId) return`。能治好症状，但治不了病——因为程序里同时有 `timerId`、按钮文字、`seconds` 三份"我现在在不在跑"的信息，它们随时可以不一致。
-
-改成一个明确的 `running`：
-
-```diff
-- document.querySelector('#start').addEventListener('click', () => {
--   timerId = setInterval(() => {
--     seconds--
--     render()
--   }, 1000)
-- })
-+ let running = false
-+
-+ function start() {
-+   if (running) return          // 已经在跑，什么都不做
-+   running = true
-+   timerId = setInterval(() => {
-+     seconds--
-+     render()
-+   }, 1000)
-+   toggle.textContent = '暂停'
-+ }
-```
-
-一次点击只会改变一个状态，界面跟着状态走。
-
-::: tip 这个 bug 教会的事
-**"重复点击"是所有按钮的必测项。** 现在把它写进你的验收标准，以后每个有按钮的项目都用得上。
-
-顺便记住：报 bug 的时候，"有点快"这种描述的价值是零。**步骤 + 期望 + 实际 + 频率**，四句话，缺一不可。
-:::
-
-## Bug 2：切到别的标签页，回来发现少走了半分钟
-
-### 复现
-
-```text
-操作：点开始 → 切到浏览器另一个标签页 → 等 30 秒 → 切回来
-期望：正好走了 30 秒
-实际：只走了 10 秒左右（有时候更少）
-频率：切得越久，差值越大
-```
-
-### 为什么
-
-浏览器会给后台标签页**降频**：为了省电，`setInterval` 从每秒一次变成几秒一次。你的代码假设"每次回调 = 过去了一秒"，这个假设在后台崩溃了。
-
-这不是浏览器的 bug，是设计如此。
-
-### 修法：不要数秒，要算时间
-
-```diff
-- timerId = setInterval(() => {
--   seconds--
--   render()
-- }, 1000)
-+ endAt = Date.now() + seconds * 1000
-+ timerId = setInterval(() => {
-+   seconds = Math.max(0, Math.round((endAt - Date.now()) / 1000))
-+   if (seconds === 0) return finish()
-+   render()
-+ }, 250)
-```
-
-思路变了：**开始时记一个"结束时刻"，之后每次只是问"现在离结束还有多久"。**
-
-定时器被降频，只是刷新得不那么勤，算出来的数字仍然准。就算它一分钟才被叫醒一次，数字一样对。
-
-::: warning 这类 bug 的可怕之处
-它不会报错。你不在后台待过，就永远发现不了。
-
-而用户会——他们会切去背单词，回来发现番茄钟短了两分钟，然后觉得"这破东西不准"，再也不用。
-
-**所有"和时间有关"的功能，都要问一句：如果程序被打断了，它还能算对吗？**
-:::
-
-## Bug 3：刷新一下，今天的记录没了
-
-### 复现
-
-```text
-操作：完成一个番茄（把常量改成 5 秒来测）→ 今日显示 1 → 刷新页面
-期望：今日还是 1
-实际：变回 0
-```
-
-需求卡里明明写了这条，但它没做——**因为你验证的时候没试**。这就是为什么验收标准要一条条手上过。
-
-### 它第一版给的代码
+`running` 用来判断程序是否运行，`timerId` 只是定时器句柄，按钮文字由状态更新。主按钮和重置可以写成：
 
 ```js
-localStorage.setItem('done', done)      // 存
-let done = localStorage.getItem('done') // 读
-```
+let running = false
 
-两行都有问题。
-
-**存的问题**：`localStorage` 只能存字符串。存数字会被转成字符串，读回来是 `"1"`，再 `+1` 变成 `"11"`（字符串拼接），点到第九个番茄，你会看到 `"111111111"`。
-
-**读的问题**：第一次打开时 `getItem` 返回 `null`，`null + 1` 是 `1`——看起来没事，但一旦进入字符串分支就会连环出错。
-
-### 修法：存的时候序列化，读的时候兜底
-
-```js
-const KEY = 'pomo-done'
-
-function loadDone() {
-  try {
-    const raw = localStorage.getItem(KEY)
-    const n = Number(raw)
-    return Number.isFinite(n) && n >= 0 ? n : 0
-  } catch {
-    return 0            // 隐私模式 / 存储被禁用
-  }
+function start() {
+  if (running) return
+  running = true
+  timerId = setInterval(() => {
+    remain--
+    render()
+  }, 1000)
+  toggle.textContent = '暂停'
 }
 
-function saveDone(n) {
+function pause() {
+  if (!running) return
+  running = false
+  clearInterval(timerId)
+  timerId = null
+  toggle.textContent = '继续'
+}
+
+toggle.addEventListener('click', () => {
+  if (running) pause()
+  else start()
+})
+
+reset.addEventListener('click', () => {
+  running = false
+  clearInterval(timerId)
+  timerId = null
+  remain = 25 * 60
+  toggle.textContent = '开始'
+  render()
+})
+```
+
+这段代码仍会使用后面要替换的每秒减 1 逻辑。当前只验收状态切换和重复点击，确认没有多个定时器后再进入下一项。
+
+## Bug 2：后台标签页里计时落后
+
+### 复现
+
+```text
+操作：开始 → 切到另一个标签页 → 等待 30 秒 → 返回
+期望：剩余时间约减少 30 秒
+实际：在某些浏览器或系统状态下，减少得更少
+```
+
+后台节流程度取决于浏览器、系统和标签页状态，30 秒不一定在每个环境里都能复现。可以适当延长测试时间，并以秒表记录的真实经过时间为依据。
+
+### 原因与修复
+
+`remain--` 把一次回调当成一秒。后台标签页减少回调次数后，倒计时就会被拖长。改成记录目标结束时间，每次回调根据当前时间重算：
+
+```js
+let endAt = 0
+
+function update() {
+  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+  if (remain === 0) return finish()
+  render()
+}
+
+function start() {
+  if (running) return
+  if (remain === 0) remain = 25 * 60
+  running = true
+  endAt = Date.now() + remain * 1000
+  toggle.textContent = '暂停'
+  timerId = setInterval(update, 250)
+  update()
+}
+
+function pause() {
+  if (!running) return
+  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+  if (remain === 0) return finish()
+  running = false
+  clearInterval(timerId)
+  timerId = null
+  toggle.textContent = '继续'
+  render()
+}
+
+function finish() {
+  running = false
+  clearInterval(timerId)
+  timerId = null
+  remain = 0
+  render()
+  document.title = '休息一下'
+  toggle.textContent = '开始'
+}
+```
+
+`Math.ceil` 表示这一秒还没过完就仍显示 1，避免提前约半秒显示零。后台回调仍可能变慢，但回到页面后会按真实时间重算；手动修改系统时钟则是另一项限制。
+
+## Bug 3：第二次完成变成 11，日期也没有生效
+
+先看一种常见的存储写法：
+
+```js
+let done = localStorage.getItem('pomo-done') || 0
+countEl.textContent = done
+
+// 在 finish() 里：
+done += 1
+localStorage.setItem('pomo-done', done)
+countEl.textContent = done
+```
+
+第一次完成时，`done` 可能是数字 0，加 1 得到数字 1。写入后，存储值会变成字符串 `"1"`。刷新后读出的也是字符串，再执行 `done += 1` 就会拼接成 `"11"`。刷新后显示 1 本身说明读取成功，问题发生在下一次加法。
+
+`localStorage.setItem('pomo-done', 1)` 并没有错，写入时数字会自动转成字符串。真正缺的是读取后的类型转换、数据校验和日期处理。
+
+### 按日期保存对象
+
+```js
+const KEY = 'pomo-today-v1'
+
+function today() {
+  const d = new Date()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${month}-${day}`
+}
+
+function loadToday() {
   try {
-    localStorage.setItem(KEY, String(n))
+    const data = JSON.parse(localStorage.getItem(KEY))
+    if (data && data.date === today() && Number.isInteger(data.count) && data.count >= 0) {
+      return data.count
+    }
   } catch {
-    // 存不进去就算了，不要让整个页面崩掉
+    // 存储不可用或数据损坏时使用默认值
+  }
+  return 0
+}
+
+let currentDate = today()
+let done = loadToday()
+countEl.textContent = done
+
+function saveToday() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ date: currentDate, count: done }))
+  } catch {
+    // 本次页面内继续计数，但不承诺持久保存
   }
 }
 ```
 
-三件事：**转成数字再算、读不到给默认值、写失败不要崩**。
-
-如果你要存的是对象（比如整个设置），就是 `JSON.stringify` / `JSON.parse`，同样要 `try/catch` 兜底——因为用户可能在新版本里读到旧格式的数据。
-
-## Bug 4（附赠）：跑到负数
-
-```text
-让它一直跑到 0 以下：显示 -1:-1
-```
-
-`Math.floor(-1 / 60)` 是 `-1`，`-1 % 60` 是 `-1`，拼出来就是 `-1:-1`。
-
-一行修完：
+然后在 `finish()` 更新计数：
 
 ```js
-seconds = Math.max(0, seconds)
+if (today() !== currentDate) {
+  currentDate = today()
+  done = 0
+}
+done += 1
+saveToday()
+countEl.textContent = done
 ```
 
-这个不算 bug，算"没想过"。而"没想过"占新手 bug 的一大半。
+对象存储才需要 `JSON.stringify` 和 `JSON.parse`。只存一个数字时也可以直接存字符串，但读取后仍要转换并校验。
 
-## 修完的样子
+## 边界检查：不要只遮住负数
 
-四个问题都修完之后，就是你在 [案例首页](/case-timer/) 玩过的那个版本。它多出来的东西其实很少：
+每秒减 1 的错误版在零以后可能显示 `-1:-1`。只写 `remain = Math.max(0, remain)` 会把负数遮住，却不会停止定时器，也不能保证完成数只加一次。
 
-| 改动 | 作用 |
+完整的归零处理要同时做到：剩余时间不小于 0、清除定时器、只进入一个 `finish()`、更新标题和按钮。前面的 `update()` 与 `finish()` 已经一起处理了这些情况。
+
+## 修复后的对照
+
+| 改动 | 解决的问题 |
 | --- | --- |
-| `endAt` 时间戳 | 后台节流不影响准确度 |
-| `running` 布尔值 | 一个状态来源，点两次不会开两个定时器 |
-| `Math.max(0, ...)` | 永远不出现负数 |
-| `loadDone` / `saveDone` | 刷新不丢，读不到有兜底 |
-| `finish()` 独立出来 | 归零这件事只有一个入口 |
+| `running` 与统一的开始、暂停、重置 | 重复定时器和按钮状态不一致 |
+| `endAt` 与 `Date.now()` 差值 | 后台节流导致倒计时被拖长 |
+| `Math.ceil`、`Math.max` 和 `finish()` | 提前显示零、负数和归零后仍运行 |
+| 日期加计数的存储对象 | 字符串拼接、无效数据和跨天计数 |
 
-**代码没有变长多少，但每一行你都能解释了。**
+完成版见 [案例首页](/case-timer/)。逐项对照代码职责，不必要求变量名和排版完全相同。
 
-## 记录一下
-
-在 `BUGS.md` 里写四行：
+在 `BUGS.md` 记录实际原因和复测结果：
 
 ```markdown
-- 点两次开始变两倍速 → 每次点击都新建 interval，没有 running 守卫
-- 后台标签页计时变慢 → 用 endAt 时间戳差值，不用累加
-- 刷新丢数据 → localStorage 只存字符串，读不到要给默认值
-- 显示 -1:-1 → 负数取模，Math.max(0, x) 兜住
+- 重复开始加速：每次点击新建定时器；加入 running 判断后复测通过。
+- 后台计时落后：把回调次数当秒数；改为目标结束时间差值后复测通过。
+- 第二次完成变 11：读取后未转数字；增加类型校验和日期对象后复测通过。
+- 负数与重复归零：统一 update 和 finish 的边界处理后复测通过。
 ```
 
-这就是你的错误模式清单的第一页。以后每抓一个 bug，加一行。
-
-::: tip 下一步
-修好了，能信了。最后一件事：[交付](/case-timer/finish/)。
-:::
+[下一步：交付](/case-timer/finish/){.read-more}

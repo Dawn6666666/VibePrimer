@@ -5,205 +5,105 @@ permalink: /case-schedule/build/
 createTime: 2026/10/28 10:20:00
 ---
 
-番茄钟你可以一口气让它写完——120 行，你读得完。
+下面四个生成步骤与 `TODO.md` 一一对应。每一步都先运行和验收，再提交；代码行数不作为通过标准。
 
-课程表不行。四个文件加起来 200 多行，一次生成你没法读，也没法判断哪里错了。所以这次不追求「一次给对」，追求**每一步都能看见变化**。
+## 文件分工和加载顺序
 
-四条指令，四次提交。每一条只做一件事。
+| 文件 | 职责 |
+| --- | --- |
+| `index.html` | 表格、按钮、提示区域，引入 CSS 和两个脚本 |
+| `style.css` | 表格、冲突状态和窄屏滚动样式 |
+| `data.js` | `const COURSES = [...]`，只保存课程数据 |
+| `app.js` | 校验、计算位置、冲突检测、渲染和切周 |
 
-## 先看文件分工
-
-| 文件 | 里面有什么 | 谁引用它 |
-|---|---|---|
-| `index.html` | 空壳：一个 `<table>`、两个按钮、一行提示 | 引入 CSS 和两个 JS |
-| `style.css` | 全部样式 | —— |
-| `data.js` | `const COURSES = [...]` | `app.js` |
-| `app.js` | 算位置、渲染、切周次、查冲突 | —— |
-
-顺序也固定：`data.js` 先加载，`app.js` 后加载。反过来 `app.js` 一跑就找不到 `COURSES`，报 `COURSES is not defined`。
-
-::: warning 三条不要用 export / import
-你可能在别处见过 `export const COURSES`。这里不用。
-
-ES 模块在 `file://` 下会被浏览器的跨域策略拦掉——**双击打开直接白屏**，报一个和你的代码毫无关系的 CORS 错误。大一下学期不需要在这种地方耗一晚上。
-
-用最老的办法：两个普通 `<script>`，前一个定义的变量，后一个直接用。
+`index.html` 末尾按顺序加载：
 
 ```html
 <script src="data.js"></script>
 <script src="app.js"></script>
 ```
 
-代价是变量都挂在全局。**这是有意的交换**：换双击能用。
-:::
+如果顺序反过来，`app.js` 执行时可能找不到 `COURSES`。本版使用普通脚本，避免 `file://` 下 ES 模块加载的额外限制；代价是共享全局变量，所以变量命名要清楚。
 
-## 第 1 条：骨架 + 静态渲染
-
-```text
-在 schedule 文件夹里，用原生 HTML/CSS/JS 建四个文件：
-index.html、style.css、data.js、app.js。
-
-data.js 里放这 6 门课，字段是 name/teacher/room/day/start/span/weeks：
-高等数学 A(2) 周一第1节连2节 王 B203 每周
-数据结构 周一第3节连2节 李 C105 每周
-线性代数 周三第1节连2节 孙 B101 单周
-大学物理 周三第1节连2节 周 B101 双周
-程序设计实验 周四第5节连2节 吴 机房3 每周
-马克思主义基本原理 周四第5节连2节 郑 E201 每周
-
-app.js：读 COURSES，渲染成 6 行 5 列的表格，第一列是节次 1-6，表头是周一到周五。
-这一版只做渲染：暂时不要处理 span 合并，不要做单双周过滤，不要做周次切换。
-
-要求：
-1. 用两个普通 script 标签引入，不要用 export/import，我要双击能打开
-2. 渲染只写一个 render() 函数，数据到 HTML 一步到位，不要框架
-3. 每门课的格子里显示：课程名、老师、地点
-```
-
-它给你的大概是这样：
-
-:::: demo title="第一版 · 能渲染，但不对" desc="表出来了。现在用验收标准第 2 条逐门对一遍——你会发现对不上。"
-
-```html
-<div class="app">
-  <h3>我的课表</h3>
-  <table id="grid"><thead><tr></tr></thead><tbody></tbody></table>
-</div>
-
-<style>
-  .app { font-family: system-ui, "PingFang SC", sans-serif; color: #1d2330; background: #f6f7f9; padding: 16px; border-radius: 10px; }
-  h3 { margin: 0 0 12px; font-size: 16px; }
-  table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { border: 1px solid #e2e6ec; padding: 6px 8px; text-align: left; vertical-align: top; }
-  thead th { background: #eceff4; text-align: center; }
-  td.p { background: #f0f2f6; text-align: center; color: #6b7381; width: 34px; }
-  td.empty { background: #fff; }
-  td.course { background: #fff; }
-  td.course .n { font-weight: 600; display: block; }
-  td.course .m { color: #6b7381; font-size: 12px; }
-</style>
-
-<script>
-  const COURSES = [
-    { name: '高等数学 A(2)', teacher: '王', room: 'B203', day: 1, start: 1, span: 2, weeks: 'all' },
-    { name: '数据结构', teacher: '李', room: 'C105', day: 1, start: 3, span: 2, weeks: 'all' },
-    { name: '线性代数', teacher: '孙', room: 'B101', day: 3, start: 1, span: 2, weeks: 'odd' },
-    { name: '大学物理', teacher: '周', room: 'B101', day: 3, start: 1, span: 2, weeks: 'even' },
-    { name: '程序设计实验', teacher: '吴', room: '机房 3', day: 4, start: 5, span: 2, weeks: 'all' },
-    { name: '马克思主义基本原理', teacher: '郑', room: 'E201', day: 4, start: 5, span: 2, weeks: 'all' },
-  ];
-  const DAYS = ['周一', '周二', '周三', '周四', '周五'];
-  const PERIODS = 6;
-
-  function render() {
-    document.querySelector('#grid thead tr').innerHTML =
-      '<th>节</th>' + DAYS.map((d) => '<th>' + d + '</th>').join('');
-    let html = '';
-    for (let p = 1; p <= PERIODS; p++) {
-      html += '<tr><td class="p">' + p + '</td>';
-      for (let d = 1; d <= 5; d++) {
-        const c = COURSES.find((x) => x.day === d && x.start === p);
-        html += c
-          ? '<td class="course"><span class="n">' + c.name + '</span><span class="m">' + c.teacher + ' · ' + c.room + '</span></td>'
-          : '<td class="empty"></td>';
-      }
-      html += '</tr>';
-    }
-    document.querySelector('#grid tbody').innerHTML = html;
-  }
-  render();
-</script>
-```
-
-::::
-
-## 第一版有四个问题
-
-对着验收标准看，四条全不达标：
-
-| # | 你看到的 | 实际原因 | 对应验收 |
-|---|---|---|---|
-| 1 | 周一第 1 节有高数，第 2 节空着 | `span` 没被用，一门课只画一格 | 3 |
-| 2 | 周三第 1 节只有线性代数，**大学物理凭空消失** | 两门课同一天同节，`find` 只返回第一门 | 2 |
-| 3 | 周四第 5 节只剩程序设计实验，没有冲突提示 | 同上，且冲突检测根本没写 | 6 |
-| 4 | 没有周次按钮，页面上永远是同一个样子 | 没做 | 5 |
-
-第 2 条最值得停一下：**课程消失，页面不报错。** 这就是这一章开头说的那种错误——界面看起来很正经，数据已经丢了。
-
-::: tip 这一步就该提交
-```bash
-git add .
-git commit -m "骨架 + 静态渲染，6 门课能显示（合并和周次未做）"
-```
-带着已知问题提交，比"改到全部正确再提交"安全。下一版要是改坏了，你能回到这个能跑的状态。
-:::
-
-## 第 2 条：合并单元格
-
-这条指令要给足信息，因为它是这一章算法的核心：
+## 第 1 步：四文件骨架和位置图
 
 ```text
-现在修合并。
+按 REQUIREMENT.md 创建 index.html、style.css、data.js、app.js。
+data.js 写入以下十门课，字段保持完整：
+1. 高等数学 A(2)，王，B203，周一第1节连2节，all
+2. 数据结构，李，C105，周一第3节连2节，all
+3. 概率论，陈，A302，周二第1节连2节，even
+4. 大学英语(2)，赵，D401，周二第3节连2节，all
+5. 线性代数，孙，B101，周三第1节连2节，odd
+6. 大学物理，周，B101，周三第1节连2节，even
+7. 程序设计实验，吴，机房3，周四第5节连2节，all
+8. 马克思主义基本原理，郑，E201，周四第5节连2节，all
+9. 体育（篮球），冯，体育馆，周五第3节连2节，all
+10. 形势与政策，何，E105，周五第5节连2节，odd
 
-周一第 1 节的高数应该占两行（span=2），现在只占一行。
-要求：
-1. 不要把 rowspan 直接写在渲染循环里硬算。先写一个 buildColumns(week)，
-   返回 5 个数组，每个数组 6 个位置，放 {course, span} 或 null 或 'skip'
-2. 'skip' 表示这一格被上面的 rowspan 占了，渲染时跳过它，不要输出 <td>
-3. 同一格如果已经放过课，先来的赢，后来的不要覆盖
-4. 渲染循环只读 buildColumns 的结果，不再做任何计算
+app.js 首步就使用 buildColumns + render：
+- buildColumns 返回五列，每列六个位置
+- 课程格为 { course, span }，空格为 null，被 rowspan 占用的位置为 'skip'
+- render 遇到 'skip' 时不输出 td，课程格输出 rowspan
+本步暂不做周次过滤、切周按钮和冲突提示。
 ```
 
-关键在于**先算好一张地图，再照着地图画**。
+放置课程前要检查整个连续节次区间，不能只检查起点：
 
 ```js
-function buildColumns(week) {
-  const list = COURSES.filter((c) => matchesWeek(c, week));
+function buildColumns(list) {
   const cols = DAYS.map(() => Array(PERIODS).fill(null));
 
   for (const c of list) {
-    const col = cols[c.day - 1];   // 人话的 1-5 → 下标 0-4
-    const s = c.start - 1;         // 人话的 1-6 → 下标 0-5
-    if (col[s]) continue;          // 这格有课了，先来的赢
-    col[s] = { course: c, span: c.span || 1 };
-    for (let k = 1; k < (c.span || 1); k++) col[s + k] = 'skip';
+    const col = cols[c.day - 1];
+    const start = c.start - 1;
+    let canPlace = true;
+
+    for (let k = 0; k < c.span; k++) {
+      if (col[start + k] !== null) canPlace = false;
+    }
+    if (!canPlace) {
+      console.warn('同格课程暂不重复放置：', c.name);
+      continue;
+    }
+
+    col[start] = { course: c, span: c.span };
+    for (let k = 1; k < c.span; k++) col[start + k] = 'skip';
   }
   return cols;
 }
 ```
 
-渲染变成：
+渲染时的核心分支是：
 
 ```js
-for (let d = 0; d < DAYS.length; d++) {
-  const cell = cols[d][p];
-  if (cell === 'skip') continue;                       // 被上面占了，这一格不存在
-  if (cell) {
-    html += `<td class="course" rowspan="${cell.span}">…</td>`;
-  } else {
-    html += '<td class="empty"></td>';
-  }
+const cell = cols[d][p];
+if (cell === 'skip') continue;
+if (cell) {
+  html += `<td class="course" rowspan="${cell.span}">…</td>`;
+} else {
+  html += '<td class="empty"></td>';
 }
 ```
 
-::: warning `'skip'` 和 `null` 是两件事
-`null` 是「这一格空着，画一个空格子」。
-`'skip'` 是「这一格不存在，一个字都别吐」。
+`null` 表示需要输出空格，`'skip'` 表示位置已经被上一行的 `rowspan` 占用，不能再输出一个单元格。
 
-混成一个值，表格就会多出格子、整体右移。这是这类表格最常见的错。
-:::
+首步验收十条数据完整、表头正确、普通课程位置正确、连上两节的课程合并。同格课程留到下一步处理。验收后提交：
 
-跑一遍，看周一第 1 节：格子跨两行了。
+```bash
+git add .
+git commit -m "添加课程数据与rowspan表格"
+```
 
-## 第 3 条：单双周 + 周次
+## 第 2 步：单双周和周次保存
 
 ```text
-加单双周和周次切换。
-
-1. 加一个 matchesWeek(course, week) 函数，只在这一个地方判断单双周
-2. 页面上加「‹ 第 N 周 ›」三个元素，N 从 1 到 20 循环
-3. 周次存 localStorage，刷新后保持
-4. 判断单双周要写 week % 2，不要写死
+在第 1 步基础上添加：
+1. matchesWeek(course, week)，集中处理 all / odd / even
+2. 1–20 周循环切换按钮
+3. localStorage 保存周次，无效或不可读时回到第 1 周
+4. render 先过滤当前周课程，再调用 buildColumns
+不要重写位置图结构。
 ```
 
 ```js
@@ -214,68 +114,86 @@ function matchesWeek(c, week) {
 }
 ```
 
-第 1 条那句「只在这一个地方判断」是给你自己留的后路。第三节你会遇到单双周反了的 bug——那时候只要改这一行，而不是满项目找 `% 2`。
+周次从 1 开始，第 1 周是单周。读取存储时用 `Number` 转换，并用 `Number.isInteger` 和范围检查确认有效。
 
-第 3 条的坑（`localStorage` 拿回来的是字符串）在案例一里已经摔过一次了，这里同一招：`parseInt` + 兜底。
+验收周三第 1 节：第 1 周是线性代数，第 2 周是大学物理；切到第 2 周刷新后仍保持。然后提交：
 
-## 第 4 条：冲突提示
-
-```text
-加冲突检测。
-
-1. 两门课「同一天、节次区间相交、周次有交集」才算冲突
-2. 节次相交用 start 和 span 算，不要用 start === start
-3. 冲突的课在表格里标红
-4. 表格上方显示一行文字：⚠ N 处冲突：课A 和 课B
-5. 只提示，不删除、不覆盖、不阻止渲染
+```bash
+git add .
+git commit -m "支持单双周切换并保存周次"
 ```
+
+## 第 3 步：数据校验和冲突提示
+
+先过滤非法课程，再检测冲突和布局。非法数据不应参与冲突计算，也不能让整表停止渲染。
+
+```js
+const WEEK_TYPES = ['all', 'odd', 'even'];
+const courseSpan = (c) => c.span === undefined ? 1 : c.span;
+
+function validCourse(c) {
+  const span = courseSpan(c);
+  return c && ['name', 'teacher', 'room'].every((key) => typeof c[key] === 'string')
+    && Number.isInteger(c.day) && c.day >= 1 && c.day <= DAYS.length
+    && Number.isInteger(c.start) && c.start >= 1 && c.start <= PERIODS
+    && Number.isInteger(span) && span >= 1 && c.start + span - 1 <= PERIODS
+    && WEEK_TYPES.includes(c.weeks);
+}
+```
+
+对每门非法课程调用 `console.warn` 并跳过。漏写 `span` 可按 1 处理，`span: 0` 和 `weeks: 'oddd'` 则属于非法数据。
+
+冲突要同时满足同一天、节次相交、周次有交集：
 
 ```js
 function overlap(a, b) {
   if (a.day !== b.day) return false;
-  // 两段区间不相交：a 结束得比 b 开始还早，或反之
-  if (a.start >= b.start + span(b) || b.start >= a.start + span(a)) return false;
+  if (a.start >= b.start + b.span || b.start >= a.start + a.span) return false;
   if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
   return true;
 }
 ```
 
-第 1 条那个「周次有交集」容易被忽略：单周的课和双周的课占同一格，**不算冲突**——一次只有一门在上。写成 `start === start` 就判冲突，你的线性代数和大学物理会一起变红，然后你就会去改一门本来没问题的课。
+可以用四种情况检查判断：
 
-## 四次提交
+| 课程 A | 课程 B | 是否冲突 |
+| --- | --- | --- |
+| 周三第 1 节连 2 节，odd | 同时间，even | 否，周次没有交集 |
+| 周三第 1 节连 2 节，all | 同时间，odd | 是 |
+| 周三第 1 节连 2 节 | 周三第 3 节开始 | 否，只是首尾相接 |
+| 周三第 1 节连 3 节 | 周三第 3 节开始 | 是 |
 
-| 提交 | 改了什么 | 大概行数 | 这时候能验哪条标准 |
-|---|---|---|---|
-| 1 | 四个文件 + 静态渲染 | ~70 | 1 |
-| 2 | `buildColumns` + `rowspan` | ~25 | 3 |
-| 3 | 单双周 + 周次 + localStorage | ~30 | 4、5 |
-| 4 | 冲突检测 + 标红 + 提示 | ~25 | 6 |
+`findConflicts` 返回冲突课程对。`buildColumns(list, conflicts)` 先把涉及冲突的课程标为 `conflict: true`，再按原规则布局；后到课程不单独占格，但名字仍出现在警告中。警告写“N 对课程冲突”。
 
-每次不超过 30 行 diff。**这就是"拆成四步"的全部意义**：出了问题，你只需要看最近这 30 行。
+课程名、老师和教室通过 `innerHTML` 输出前要转义，或改用 DOM 节点和 `textContent`。完成版使用了 `escapeHTML`，避免课程文本被当成标签。
 
-## 现在读一遍代码
+验收第 6 条和一项非法数据测试后提交：
 
-四个文件，你只需要认三处：
+```bash
+git add .
+git commit -m "添加数据校验和冲突提示"
+```
 
-1. **`data.js` 第一行** —— `const COURSES = [`。所有内容都在这里，界面长什么样与它无关。
-2. **`buildColumns`** —— 数据变成地图的地方。这是整个项目的脑子。
-3. **`render`** —— 地图变成 HTML 的地方。这里不该有任何判断逻辑，只该照着地图画。
+## 第 4 步：窄屏与合法加课
 
-第三点是判断标准：**如果 `render` 里出现了 `if (c.weeks === 'odd')`，说明算位置的逻辑漏到画图里了。** 这种代码第一次能跑，第二次改就崩。
+```css
+.scroller { overflow-x: auto; }
+table { min-width: 560px; }
+```
 
-## 现在做一次验收
+滚动样式放在表格外层容器，`min-width` 防止列被压成逐字换行。在 `data.js` 临时加入一门合法课程：
 
-六条打勾了：
+```js
+{ name: '测试选修', teacher: '测', room: 'A101', day: 2, start: 5, span: 1, weeks: 'all' },
+```
 
-- 表头对、节次对
-- 十门课都在格子里
-- 连上的课合并成一格
-- 单双周跟着周次换
-- 刷新记得第几周
-- 周四第 5 节标红，右上角有冲突提示
+刷新后应出现在周二第 5 节，其他运行文件不用改。验证完删除这门测试课，再刷新确认恢复。最后提交窄屏样式：
 
-剩两条没验：手机宽度（第 7 条）和「加一门课只改一处」（第 8 条）。
+```bash
+git add .
+git commit -m "适配窄屏课程表"
+```
 
-这两条**最好在你心情好的时候验**。因为它们是这一章里唯一会把你打回白屏的两件事。
+四个提交对应四个可恢复节点。`render` 可以保留 `if (cell === 'skip')` 等展示分支，但周次匹配、课程位置和冲突关系应由各自的函数计算，不要全塞进 HTML 拼接循环。
 
-[四个藏起来的 bug](/case-schedule/debug/)
+[下一步：排查四类典型问题](/case-schedule/debug/){.read-more}

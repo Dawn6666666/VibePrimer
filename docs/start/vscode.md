@@ -5,59 +5,58 @@ permalink: /start/vscode/
 createTime: 2026/10/28 09:50:47
 ---
 
-VS Code 是你在整份指南里待得最久的地方。它不是"代码编辑器"这么简单，它同时是你的**文件管理器**、**终端**、**差异对比工具**和**Agent 的落脚点**。
-
-装它只需要十分钟。把它调成能用的样子，另外十分钟。
+这份指南会用 VS Code 管理项目文件、查看代码差异、运行终端命令，也可以在里面使用编程 Agent。安装和基础设置通常需要二十分钟左右。
 
 ## 为什么是 VS Code
 
-不是因为它最好，是因为它最不挑：
+它免费，支持 Windows、macOS 和 Linux，相关教程也多。文件树、编辑器和终端可以放在同一个窗口里，刚开始做项目时比较容易看清各部分的关系。许多编程 Agent 提供 VS Code 扩展；终端类 Agent 也能直接使用它的内置终端。
 
-- 免费，Windows / macOS / Linux 都能装
-- 几乎所有编程 Agent 都支持它（要么是扩展，要么是终端里跑命令，VS Code 自带终端）
-- 左边文件树、右边代码、下面终端，三个窗口就把一个项目看全了
-- 出问题时，你在网上搜到的截图基本都是它
-
-JetBrains 全家桶更强，但要钱、要激活；Vim 更快，但你现在会花三天在退出方式上。先用它。
+其他编辑器同样可以完成本指南的练习，不必为了跟教程一致更换已经熟悉的工具。
 
 ## 装
 
-:::: steps
+::::: steps
 
 1. **下载**
 
-   打开 [code.visualstudio.com](https://code.visualstudio.com/)，点中间那个大按钮。Windows 会自动识别你的系统；macOS 上会给你一个 `.zip`。
+   打开 [code.visualstudio.com](https://code.visualstudio.com/)，下载适合你系统的安装包。不要从来源不明的软件站下载。
 
 2. **安装（Windows）**
 
-   运行安装包时，这几项务必勾上：
+   运行安装包时，建议勾上：
 
    - [x] 将「通过 Code 打开」操作添加到 Windows 资源管理器目录上下文菜单
    - [x] 将「通过 Code 打开」操作添加到 Windows 资源管理器文件上下文菜单
    - [x] 将 Code 注册为受支持的文件类型的编辑器
    - [x] 添加到 PATH（重启后生效）
 
-   最后一项没勾，你在终端里敲 `code .` 会提示找不到命令。
+   如果最后一项没勾，终端里的 `code .` 可能提示找不到命令。
 
 3. **安装（macOS）**
 
-   解压后把 `Visual Studio Code.app` 拖进「应用程序」文件夹。第一次打开会弹「无法验证开发者」，去 `系统设置 → 隐私与安全性` 点「仍要打开」。
+   解压后把 `Visual Studio Code.app` 拖进「应用程序」文件夹。
 
-   想在终端里用 `code .`：打开 VS Code，按 `Cmd+Shift+P`，输入 `shell command`，选 **Shell Command: Install 'code' command in PATH**。
+   想在终端里用 `code .`，打开 VS Code，按 `Cmd+Shift+P`，输入 `shell command`，选 **Shell Command: Install 'code' command in PATH**。
 
-4. **装中文界面（可选，但建议）**
+   如果系统提示无法验证开发者，先确认安装包确实来自 VS Code 官网，再按苹果的安全提示处理。这个提示不是每次安装都会出现。
 
-   按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准微软官方那个（发布者是 Microsoft），点 Install，然后重启。
+4. **安装（Linux）**
 
-5. **确认版本**
+   官网提供 `.deb` 和 `.rpm` 等安装包，请选择与你的发行版对应的格式，并按官方说明安装。安装后在终端运行 `code --version`，确认命令可用。
 
-   按 `Ctrl+Shift+P` 打开命令面板，输入 `About`，看版本号。2026 年的版本都行，不用追最新。
+5. **装中文界面（可选）**
 
-::::
+   按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准发布者 Microsoft，点 Install，然后重启。
 
-## 装完必须改的五个设置
+6. **确认能打开**
 
-按 `Ctrl+,` 打开设置，右上角有个「打开设置 (JSON)」的小图标，点它，把下面这段粘进去。每一项后面我写了为什么。
+   启动 VS Code，能看到欢迎页即可。版本会不断更新，只要仍受官方支持，就不必为了教程追某一个版本号。
+
+:::::
+
+## 装完后建议调整的设置
+
+按 `Ctrl+,` 打开设置，再点右上角的「打开设置 (JSON)」。如果文件里已有内容，不要整份覆盖；把需要的字段合并进去，并注意字段之间的逗号。
 
 ```json
 {
@@ -72,95 +71,84 @@ JetBrains 全家桶更强，但要钱、要激活；Vim 更快，但你现在会
 }
 ```
 
-| 设置 | 为什么 |
+| 设置 | 用途 |
 | --- | --- |
-| `autoSave: onFocusChange` | 切走就保存。Agent 改文件时你在浏览器里看，回来就是最新的。 |
-| `formatOnSave: true` | 保存时自动缩进对齐。**这会让 diff 更好读**，后面审代码全靠它。 |
-| `fontSize: 15` | 14 太小，16 太挤。眼睛会疼。 |
-| `minimap: false` | 右边那条缩略图对新项目毫无用处，还占地方。 |
-| `files.exclude` | 不显示 `node_modules`。那个文件夹里可能有几万个文件，展开一次能卡你半分钟。 |
+| `autoSave: onFocusChange` | 编辑器失去焦点时保存，减少忘记保存导致的运行结果不一致 |
+| `formatOnSave: true` | 保存时调用当前语言可用的格式化器，让代码格式和 diff 更整齐 |
+| `fontSize: 15` | 设置编辑器字号，可以按自己的需要调整 |
+| `minimap: false` | 收起右侧代码缩略图，给小屏幕留出空间 |
+| `files.exclude` | 在文件树里隐藏依赖目录和 Git 内部文件，文件本身不会被删除 |
 
-::: tip 一个隐藏的坑
-Windows 上，**项目文件夹的路径里不要有中文和空格**。`C:\Users\张三\Desktop\我的项目` 这种路径，会让某些命令行工具直接报错，而报错信息通常不会告诉你是路径的锅。
+如果保存时提示“没有格式化器”，再为正在使用的语言安装一个格式化扩展即可。`formatOnSave` 只是触发开关，本身不提供所有语言的格式化能力。
 
-改成 `C:\dev\vibe-lab` 或者 `D:\code\timer`。就这一条，能省掉你两小时。
-:::
+:::: tip 项目路径尽量简单
+VS Code、Node.js 等现代工具通常支持中文和空格路径，但少数旧脚本或插件可能处理不好。初学项目可以优先使用 `C:\dev\vibe-lab`、`D:\code\timer` 或 `~/dev/vibe-lab` 这样的简单路径，减少一类兼容性问题。
+::::
 
-## 打开项目：一个动作决定后面顺不顺
+## 用「打开文件夹」打开项目
 
-**永远用「打开文件夹」，不要用「打开文件」。**
+做项目时选择 `文件 → 打开文件夹`（`Ctrl+K Ctrl+O`），打开项目的根目录。这样文件树、项目说明、Git 和 Agent 都能围绕同一组文件工作。
 
-```text
-文件 → 打开文件夹（Ctrl+K Ctrl+O）
-```
+只打开单个 `index.html` 适合临时查看，但 Agent 未必会自动读取旁边的 `style.css` 和 `script.js`，你也难以看到整个项目的改动。
 
-为什么？因为 Agent 需要知道"这个项目的边界在哪"。你打开单个 `index.html` 的时候，它看不到旁边的 `style.css`，也找不到项目里的说明文档，只能瞎猜。
+例如番茄钟项目的文件树可以是：
 
-正确的样子：左边资源管理器里是一个文件夹，文件夹里是这个项目的全部内容。
+:::: file-tree
 
-::: file-tree
+- pomodoro
+  - index.html
+  - REQUIREMENT.md
+  - TODO.md
 
-- vibe-lab
-  - timer
-    - index.html
-    - style.css
-    - script.js
-  - notes.md
+::::
 
-:::
+这里打开的是 `pomodoro`，不是它上层的练习目录，也不是单独打开 `index.html`。
 
-## 你只会用到四个区域
+## 常用的四个区域
 
 | 区域 | 怎么打开 | 用来干什么 |
 | --- | --- | --- |
-| 资源管理器 | `Ctrl+Shift+E` | 看项目里有哪些文件，新建、重命名、删除 |
-| 编辑器 | 点文件 | 看代码。**用来看，不是用来一行行敲** |
-| 终端 | `` Ctrl+` `` | 跑命令：启动项目、装依赖、用 Git |
-| 源代码管理 | `Ctrl+Shift+G` | 看这次改了什么，提交 |
+| 资源管理器 | `Ctrl+Shift+E` | 查看项目文件，新建、重命名、删除 |
+| 编辑器 | 点文件 | 阅读和小范围修改代码 |
+| 终端 | `` Ctrl+` `` | 启动项目、安装依赖、使用 Git 和 Agent |
+| 源代码管理 | `Ctrl+Shift+G` | 查看 diff、暂存和提交 |
 
-终端是重点。很多人装了 VS Code 之后从来不开终端，于是所有需要命令行的操作（装依赖、跑项目、用 Agent）都卡住。**先把 `Ctrl+`` ` `` 记住**。
+代码不必全部手敲，但你要能在编辑器里改一个按钮文字、修正一个变量名，再重新运行验证。终端也很重要，安装依赖和启动项目都会用到它。
 
-## 八个快捷键，够你用一学期
+## 八个常用快捷键
 
 | 快捷键 | 作用 |
 | --- | --- |
-| `Ctrl+P` | 按文件名跳转。比在左边树里翻快十倍 |
-| `Ctrl+Shift+F` | 全项目搜索文字。想知道某个词哪来的，用它 |
+| `Ctrl+P` | 按文件名跳转 |
+| `Ctrl+Shift+F` | 在整个项目里搜索文字 |
 | `` Ctrl+` `` | 开关终端 |
-| `Ctrl+B` | 收起/展开左边栏，屏幕小的时候很有用 |
-| `Ctrl+/` | 注释/取消注释当前行 |
+| `Ctrl+B` | 收起或展开左边栏 |
+| `Ctrl+/` | 注释或取消注释当前行 |
 | `Shift+Alt+↓` | 向下复制当前行 |
-| `Ctrl+Shift+K` | 删除当前行（不用先选中） |
-| `Ctrl+Z` / `Ctrl+Shift+Z` | 撤销 / 重做。**改坏了先按这个，别急着让 AI 修** |
+| `Ctrl+Shift+K` | 删除当前行 |
+| `Ctrl+Z` / `Ctrl+Shift+Z` | 撤销 / 重做 |
 
-macOS 上把 `Ctrl` 换成 `Cmd`，`Alt` 换成 `Option`。
+macOS 上，大多数 `Ctrl` 快捷键改成 `Cmd`，`Alt` 改成 `Option`。开关终端通常仍是 `` Ctrl+` ``；也可以在菜单里选择「终端 → 新建终端」。
 
-## 三个插件，别多装
+## 三个插件就够开始
 
-`Ctrl+Shift+X` 打开扩展面板：
+按 `Ctrl+Shift+X` 打开扩展面板：
 
-1. **Chinese (Simplified) Language Pack** — 微软官方，界面中文化
-2. **Live Server** — 右键 HTML 文件 → Open with Live Server，改完保存浏览器自动刷新。单文件项目用它，很爽
-3. **Error Lens**（可选）— 把错误信息直接显示在出错那行的行尾，不用把鼠标移上去
+1. **Chinese (Simplified) Language Pack**：前面已经装过可跳过。
+2. **Live Server**：右键 HTML 文件，选择 Open with Live Server；保存后浏览器会自动刷新。
+3. **Error Lens**（可选）：把错误信息显示在对应代码行附近。
 
-::: warning 不要装的东西
-- 各种"AI 编程"插件**只装一个**。同时装三个，它们会互相抢焦点、重复补全，你会以为是自己写错了
-- 主题插件一个就够，装十个只会让你每次打开都在调颜色
-- 不要装"代码美化全家桶"。`formatOnSave` 已经够了
-
-插件装多了会明显拖慢启动。你现在需要的是**少而稳**。
-:::
+AI 编程插件先只启用一个，避免多个工具同时补全或弹出面板。格式化扩展也按语言需要安装，不必一次装一组功能重复的工具。
 
 ## 验收
 
-做一遍下面三件事，全过了才继续：
+1. 在 `C:\dev`（Windows）或 `~/dev`（macOS / Linux）下新建 `vibe-lab`，用 VS Code 打开它。
+2. 新建 `hello.html`，写入 `<h1>能跑</h1>` 并保存。
+3. 双击这个文件，浏览器里应出现“能跑”。
+4. 在 VS Code 内置终端运行 `code .`，应重新打开当前文件夹。
 
-1. 在桌面新建一个文件夹 `vibe-lab`，用 VS Code「打开文件夹」打开它
-2. 在里面新建 `hello.html`，写入 `<h1>能跑</h1>`，保存
-3. 双击这个文件，浏览器里出现「能跑」；然后在终端里敲 `code .`，VS Code 重新打开这个文件夹
+如果 `code .` 提示找不到命令，Windows 可重新运行安装包并勾选 PATH，macOS 可再次执行 Install 'code' command in PATH。修改 PATH 后要重开终端。
 
-第 3 步的 `code .` 如果提示找不到命令，回到「安装」那一步，Windows 重装时勾上 PATH，macOS 执行一次 Install 'code' command in PATH。
-
-::: tip 下一步
-编辑器有了。接下来装那个替你打字的家伙：[选一个编程 Agent](/start/agent/)。
-:::
+:::: tip 下一步
+编辑器可以用了，接着 [安装 Git](/start/git/)，给后面的修改留下可恢复的版本。
+::::

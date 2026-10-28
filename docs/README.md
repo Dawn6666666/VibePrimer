@@ -7,8 +7,8 @@ config:
       name: Vibe Coding 入门
       tagline: 从一句话，到能交付的作品
       text: >-
-        写给大一下的你。先把 VS Code 和一个编程 Agent 装好，
-        再用两个案例走通「想清楚 → 定计划 → 生成并运行 → 发现问题并修改 → 检查并交付」。
+        写给刚开始做项目的同学。先准备好 VS Code、编程 Agent 和 Git，
+        再用两个案例练习需求、计划、生成、调试与交付。
       actions:
         - theme: brand
           text: 从第 0 章开始
@@ -21,29 +21,29 @@ config:
     effect: tint-plate
   - type: features
     features:
-      - title: 环境不是背景板
+      - title: 从环境验收开始
         icon: carbon:settings-check
-        details: VS Code、Agent、Git、运行时，一样一样装，最后有一张验收表。装不上的地方写清楚了，照着做就行。
+        details: 分别安装 VS Code、Agent 和 Git，再用小任务确认文件修改、命令运行和版本恢复都能工作。
         link: /start/what/
       - title: 五步循环
         icon: carbon:repeat
-        details: 想清楚、定计划、生成并运行、发现问题并修改、检查并交付。每一步都有产出物和验收标准，不是口号。
+        details: 想清楚、定计划、生成并运行、发现问题并修改、检查并交付。每一步都有产出和验收方法。
         link: /loop/
-      - title: 两个案例，一大一小
+      - title: 两个完整案例
         icon: carbon:code
-        details: 番茄钟（单文件，两小时）和课程表（多文件，一个周末）。从「能跑」走到「能交」。
+        details: 番茄钟约 2.5 小时，课程表约 3 小时。时间只是参考，可以分多次完成。
         link: /case-timer/
-      - title: 需求分析是主线
+      - title: 需求分析贯穿项目
         icon: carbon:document-word-processor
-        details: 需求卡、验收清单、不做什么清单。这份指南里，生成代码只是中间产物。
+        details: 需求卡、验收标准和排除项会直接进入计划、代码审查与交付，不单独停在理论章节。
         link: /craft/prompt/
-      - title: 二十个坑
+      - title: 二十个常见问题
         icon: carbon:warning-alt
-        details: 报错直接复制粘贴、一口气让 AI 写八百行、看不懂就不敢改……每条都配了解法。
+        details: 按开工、需求、编码和交付分类，记录症状、原因和处理方法，适合遇到问题时回查。
         link: /pitfalls/
-      - title: 能复制走的东西
+      - title: 模板与延伸内容
         icon: carbon:copy-file
-        details: 需求卡、验收清单、交接说明、十二个提示词模板。全部可以原样拿去用。
+        details: 12 份需求、开发、验收与交付模板可直接复制，另有术语表、后续实践和原文阅读链接。
         link: /appendix/templates/
   - type: HomeRead
 title: 首页

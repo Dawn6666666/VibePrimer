@@ -5,17 +5,13 @@ permalink: /case-schedule/
 createTime: 2026/10/28 10:12:00
 ---
 
-番茄钟只有一个数字。数据错了，界面立刻不对，你看得见。
+课程表比番茄钟多了两层问题：每门课有七个字段，同一份数据还要根据周次、节次和冲突规则变成表格。页面可能看起来完整，实际却漏了一门课，所以本案例先确定数据，再实现界面。
 
-课程表不一样。它的数据是一张表，界面是这张表的投影。数据里错一天，界面上就有一个格子跑到别人家里——而页面看起来完全正常。
+## 先看完成版
 
-这一章要练的就是这件事：**先把数据想清楚，再让界面长出来。**
+点击 `‹` `›` 切换周次。单双周课程会变化，连上的节次会合并，刷新后保留周次。
 
-## 你会做出什么
-
-先看成品。点右上角的 `‹` `›` 换周次，单双周的课会跟着换：
-
-:::: demo title="完成版课程表" desc="十门课、单双周、连上两节合并成一格、冲突标红。刷新页面，周次还记得。"
+::::: demo title="完成版课程表" desc="示例含十门课和一组冲突。表格保留先录入的冲突课程并标红，上方警告列出所有冲突课程。"
 
 ```html
 <div class="app">
@@ -28,13 +24,11 @@ createTime: 2026/10/28 10:12:00
   </div>
   <div class="scroller">
     <table id="grid">
-      <thead>
-        <tr><th class="corner">节</th></tr>
-      </thead>
+      <thead><tr><th class="corner">节</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
-  <p class="foot">点 ‹ › 切周次。单双周的课会跟着换。刷新页面，周次还记得。</p>
+  <p class="foot">冲突时，表格保留先录入的课程；上方提示列出全部冲突课程。</p>
 </div>
 
 <style>
@@ -56,7 +50,7 @@ createTime: 2026/10/28 10:12:00
   .wk b { font-size: 17px; }
   .spacer { flex: 1; }
   .warn {
-    font-size: 13px; padding: 4px 10px; border-radius: 999px;
+    font-size: 13px; padding: 4px 10px; border-radius: 8px;
     background: #fff1f0; color: #b42318; border: 1px solid #ffd2cc;
   }
   .scroller { overflow-x: auto; }
@@ -64,22 +58,20 @@ createTime: 2026/10/28 10:12:00
   th, td { border: 1px solid #e2e6ec; padding: 6px 8px; text-align: left; vertical-align: top; }
   thead th { background: #eceff4; font-weight: 600; text-align: center; }
   th.corner { width: 34px; text-align: center; }
-  td.p { background: #f0f2f6; text-align: center; color: #6b7381; font-variant-numeric: tabular-nums; }
-  td.empty { background: #fff; }
-  td.course { background: #fff; }
+  td.p { background: #f0f2f6; text-align: center; color: #6b7381; }
+  td.empty, td.course { background: #fff; }
   td.course .n { font-weight: 600; display: block; }
   td.course .m { color: #6b7381; font-size: 12px; }
   td.bad { background: #fff1f0; }
   td.bad .n { color: #b42318; }
   .tag {
-    display: block; width: max-content; font-size: 11px; padding: 0 5px; border-radius: 4px;
-    background: #eaeef5; color: #4a5361; margin-top: 3px;
+    display: block; width: max-content; font-size: 11px; padding: 0 5px;
+    border-radius: 4px; background: #eaeef5; color: #4a5361; margin-top: 3px;
   }
   .foot { font-size: 12px; color: #7b8392; margin: 12px 0 0; }
   @media (prefers-color-scheme: dark) {
     .app { background: #141821; color: #e6eaf2; }
     .bar button { background: #1c2230; border-color: #303848; color: #e6eaf2; }
-    .bar button:hover { background: #232b3b; }
     th, td { border-color: #2b3341; }
     thead th { background: #1d2430; }
     td.p { background: #1a2029; color: #93a0b4; }
@@ -109,8 +101,17 @@ createTime: 2026/10/28 10:12:00
   const DAYS = ['周一', '周二', '周三', '周四', '周五'];
   const PERIODS = 6;
   const KEY = 'vibe-schedule:week';
+  const WEEK_TYPES = ['all', 'odd', 'even'];
+  const courseSpan = (c) => c.span === undefined ? 1 : c.span;
 
-  const span = (c) => c.span || 1;
+  function validCourse(c) {
+    const span = courseSpan(c);
+    return c && ['name', 'teacher', 'room'].every((key) => typeof c[key] === 'string')
+      && Number.isInteger(c.day) && c.day >= 1 && c.day <= DAYS.length
+      && Number.isInteger(c.start) && c.start >= 1 && c.start <= PERIODS
+      && Number.isInteger(span) && span >= 1 && c.start + span - 1 <= PERIODS
+      && WEEK_TYPES.includes(c.weeks);
+  }
 
   function matchesWeek(c, week) {
     if (c.weeks === 'odd') return week % 2 === 1;
@@ -118,71 +119,103 @@ createTime: 2026/10/28 10:12:00
     return true;
   }
 
+  function activeCourses(week) {
+    return COURSES.filter((c) => {
+      if (!validCourse(c)) {
+        console.warn('课程字段或位置不合法，已跳过：', c);
+        return false;
+      }
+      return matchesWeek(c, week);
+    }).map((c) => ({ ...c, span: courseSpan(c), conflict: false }));
+  }
+
   function overlap(a, b) {
     if (a.day !== b.day) return false;
-    if (a.start >= b.start + span(b) || b.start >= a.start + span(a)) return false;
+    if (a.start >= b.start + b.span || b.start >= a.start + a.span) return false;
     if (a.weeks !== 'all' && b.weeks !== 'all' && a.weeks !== b.weeks) return false;
     return true;
   }
 
+  function findConflicts(list) {
+    const pairs = [];
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        if (overlap(list[i], list[j])) pairs.push([list[i], list[j]]);
+      }
+    }
+    return pairs;
+  }
+
   function loadWeek() {
     try {
-      const v = parseInt(localStorage.getItem(KEY), 10);
-      return v >= 1 && v <= 20 ? v : 1;
-    } catch (e) {
+      const value = Number(localStorage.getItem(KEY));
+      return Number.isInteger(value) && value >= 1 && value <= 20 ? value : 1;
+    } catch {
       return 1;
     }
   }
 
-  function saveWeek(w) {
+  function saveWeek(value) {
     try {
-      localStorage.setItem(KEY, String(w));
-    } catch (e) {}
+      localStorage.setItem(KEY, String(value));
+    } catch {
+      // 无法保存时，本次页面内仍可切周
+    }
   }
 
   let week = loadWeek();
 
-  function buildColumns(w) {
-    const list = COURSES.filter((c) => matchesWeek(c, w)).map((c) => ({ ...c, conflict: false }));
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        if (overlap(list[i], list[j])) {
-          list[i].conflict = true;
-          list[j].conflict = true;
-        }
-      }
+  function buildColumns(list, conflicts) {
+    for (const [a, b] of conflicts) {
+      a.conflict = true;
+      b.conflict = true;
     }
+
     const cols = DAYS.map(() => Array(PERIODS).fill(null));
     for (const c of list) {
       const col = cols[c.day - 1];
-      const s = c.start - 1;
-      if (!col || s < 0 || s + span(c) > PERIODS) continue;
-      if (col[s]) continue;
-      col[s] = { course: c, span: span(c) };
-      for (let k = 1; k < span(c); k++) col[s + k] = 'skip';
+      const start = c.start - 1;
+      let canPlace = true;
+      for (let k = 0; k < c.span; k++) {
+        if (col[start + k] !== null) canPlace = false;
+      }
+      if (!canPlace) {
+        console.warn('与已放置课程重叠，仅在冲突提示中保留：', c.name);
+        continue;
+      }
+      col[start] = { course: c, span: c.span };
+      for (let k = 1; k < c.span; k++) col[start + k] = 'skip';
     }
     return cols;
   }
 
+  const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, (ch) => ESCAPES[ch]);
+  }
+
   function cellText(c) {
-    const weeks = c.weeks === 'all' ? '' : '<span class="tag">' + (c.weeks === 'odd' ? '单周' : '双周') + '</span>';
-    return '<span class="n">' + c.name + '</span><span class="m">' + c.teacher + ' · ' + c.room + '</span>' + weeks;
+    const tag = c.weeks === 'all' ? '' : `<span class="tag">${c.weeks === 'odd' ? '单周' : '双周'}</span>`;
+    return `<span class="n">${escapeHTML(c.name)}</span><span class="m">${escapeHTML(c.teacher)} · ${escapeHTML(c.room)}</span>${tag}`;
   }
 
   function render() {
-    const cols = buildColumns(week);
+    const list = activeCourses(week);
+    const conflicts = findConflicts(list);
+    const cols = buildColumns(list, conflicts);
+
     document.querySelector('#grid thead tr').innerHTML =
-      '<th class="corner">节</th>' + DAYS.map((d) => '<th>' + d + '</th>').join('');
+      '<th class="corner">节</th>' + DAYS.map((d) => `<th>${d}</th>`).join('');
 
     let html = '';
     for (let p = 0; p < PERIODS; p++) {
-      html += '<tr><td class="p">' + (p + 1) + '</td>';
+      html += `<tr><td class="p">${p + 1}</td>`;
       for (let d = 0; d < DAYS.length; d++) {
         const cell = cols[d][p];
         if (cell === 'skip') continue;
         if (cell) {
           const c = cell.course;
-          html += '<td class="course' + (c.conflict ? ' bad' : '') + '" rowspan="' + cell.span + '">' + cellText(c) + '</td>';
+          html += `<td class="course${c.conflict ? ' bad' : ''}" rowspan="${cell.span}">${cellText(c)}</td>`;
         } else {
           html += '<td class="empty"></td>';
         }
@@ -190,20 +223,13 @@ createTime: 2026/10/28 10:12:00
       html += '</tr>';
     }
     document.querySelector('#grid tbody').innerHTML = html;
-
     document.querySelector('#wnum').textContent = week;
     document.querySelector('#wpar').textContent = week % 2 === 1 ? '单周' : '双周';
 
-    const bad = [];
-    const list = COURSES.filter((c) => matchesWeek(c, week));
-    for (let i = 0; i < list.length; i++)
-      for (let j = i + 1; j < list.length; j++)
-        if (overlap(list[i], list[j])) bad.push(list[i].name + ' 和 ' + list[j].name);
-
     const warn = document.querySelector('#warn');
-    if (bad.length) {
+    if (conflicts.length) {
       warn.hidden = false;
-      warn.textContent = '⚠ ' + bad.length + ' 处冲突：' + bad.join('；');
+      warn.textContent = `⚠ ${conflicts.length} 对课程冲突：` + conflicts.map(([a, b]) => `${a.name} 和 ${b.name}`).join('；');
     } else {
       warn.hidden = true;
     }
@@ -224,48 +250,37 @@ createTime: 2026/10/28 10:12:00
 </script>
 ```
 
-::: tip 示例数据里有一处冲突
-周四第 5 节，「程序设计实验」和「马克思主义基本原理」撞在一起了。这是我故意留的——不然你没法看到冲突提示长什么样。真课表里出现这个红格子，说明你得去找教务改课了。
-:::
+:::: tip 示例里的冲突
+周四第 5 节同时安排了“程序设计实验”和“马克思主义基本原理”。当前周表格显示先录入的程序设计实验并标红，上方提示会列出两门课。数据数组没有删除任何课程。
 
-## 为什么第二个案例是它
+这里统计的是“课程对数”。三门课两两重叠会形成 3 对冲突，不写成“3 处”。
+::::
 
-| | 案例一 · 番茄钟 | 案例二 · 课程表 |
-|---|---|---|
-| 数据 | 一个数字 + 一个布尔值 | 十门课，每门七个字段 |
-| 界面 | 一块显示区 | 6 × 5 的表格，还要合并单元格 |
-| 最难的地方 | 状态不同步 | 数据的位置算错 |
-| 出错长相 | 数字跳、按钮失灵 | 页面很正常，就是格子跑偏了 |
-| 文件 | 一个 `index.html` | 四个文件，一个放数据 |
+## 和番茄钟相比多了什么
 
-番茄钟练的是「状态不能有两个源头」。课程表练的是**「界面是数据的投影」**——这句话你在第 1 章听过，这次要亲手验证一遍。
+| | 番茄钟 | 课程表 |
+| --- | --- | --- |
+| 数据 | 剩余时间、运行状态、每日计数 | 十门课，每门七个字段 |
+| 界面 | 数字和按钮 | 6 × 5 表格与合并单元格 |
+| 主要风险 | 状态和时序 | 字段、位置、周次与冲突 |
+| 运行文件 | 一个 `index.html` | `index.html`、`style.css`、`data.js`、`app.js` |
 
-而且这次有四个文件。你会第一次遇到「我改了 `data.js`，但页面没变」这种事。
+多文件项目需要知道每个文件的职责。修改课程数据时只改 `data.js`；计算位置和更新页面由 `app.js` 负责。
 
-## 这一章会发生什么
+## 学习安排
 
-| 小节 | 你要做的事 | 大概花多久 |
-|---|---|---|
-| [需求分析](/case-schedule/requirement/) | 访谈 + 把数据结构先定下来 | 25 分钟 |
-| [定计划](/case-schedule/plan/) | 让它先给数据结构，再给步骤 | 15 分钟 |
-| [生成并运行](/case-schedule/build/) | 分四条指令，每一条都能看到变化 | 50 分钟 |
-| [发现问题并修改](/case-schedule/debug/) | 四个位置类的 bug，一个比一个阴 | 45 分钟 |
-| [检查并交付](/case-schedule/ship/) | 边界测试 + README + 部署 | 30 分钟 |
+| 小节 | 内容 | 参考用时 |
+| --- | --- | --- |
+| [需求分析](/case-schedule/requirement/) | 确定字段、冲突规则和验收标准 | 25–35 分钟 |
+| [定计划](/case-schedule/plan/) | 安排文件和实施顺序 | 15–20 分钟 |
+| [生成并运行](/case-schedule/build/) | 四个小迭代，分别验收和提交 | 50–70 分钟 |
+| [调试](/case-schedule/debug/) | 排查数据、表格和冲突判断 | 40–60 分钟 |
+| [交付](/case-schedule/ship/) | 边界测试、README 和可选部署 | 30–40 分钟 |
 
-读一遍大概 40 分钟。真动手做，加上你自己的调试，两个半小时左右。
+完整实践通常需要约 3 小时，可以分两次完成。
 
 ## 开工准备
 
-```bash
-cd ~/dev/vibe-lab
-mkdir schedule
-cd schedule
-git init
-code .
-```
+在 `vibe-lab` 下新建 `schedule`，用 VS Code 打开它，再执行 `git init`。本章会创建四个运行文件，另有 `REQUIREMENT.md`、`TODO.md` 和 README 等项目文档。
 
-::: warning 这一章会用到四个文件
-`index.html`、`style.css`、`data.js`、`app.js`。
-
-只有一个 HTML 的项目，你可以靠肉眼管住它。四个文件的项目不行——**你必须知道哪个文件里有什么**。这是本章真正要教的东西，比表格本身重要。
-:::
+[下一步：先定数据](/case-schedule/requirement/){.read-more}

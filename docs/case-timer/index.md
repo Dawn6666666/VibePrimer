@@ -5,17 +5,13 @@ permalink: /case-timer/
 createTime: 2026/10/28 09:53:14
 ---
 
-这是你的第一圈，完整的。
+第一个案例只做一个本地网页：25 分钟倒计时、开始/暂停/继续、重置和今日完成数。功能不多，但会经过需求、计划、生成、调试和交付的完整过程。
 
-项目本身很小：一个网页，25 分钟倒计时，两个按钮。小到你能在一个下午读完它的每一行。**小是有意的**——这一章要练的不是功能，是循环本身。
+## 先看完成版
 
-## 你会做出什么
+::::: demo title="完成版番茄钟" desc="可以开始、暂停、继续和重置。今日完成数会按日期保存在当前浏览器中。"
 
-先看成品。这是最终版本，可以点：
-
-:::: demo title="完成版番茄钟" desc="点开始、暂停、重置。数字下面那行是今日完成数，刷新页面它也还在。"
-
-::: code-tabs
+:::: code-tabs
 
 @tab HTML
 
@@ -44,11 +40,17 @@ body {
 }
 .wrap { text-align: center; }
 #display {
-  font-size: 72px;
+  font-size: clamp(48px, 14vw, 72px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 2px;
 }
-.row { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
 button {
   padding: 10px 24px;
   font-size: 16px;
@@ -66,67 +68,112 @@ button:hover { background: #232a38; }
 
 ```js
 const TOTAL = 25 * 60
+const KEY = 'pomo-today-v1'
 const display = document.querySelector('#display')
 const toggle = document.querySelector('#toggle')
 const reset = document.querySelector('#reset')
 const countEl = document.querySelector('#count')
 
-let remain = TOTAL          // 剩余秒数
-let endAt = 0               // 结束的时间戳
+let remain = TOTAL
+let endAt = 0
 let tick = null
 let running = false
 
-// 今日完成数，存在本地
-let done = Number(localStorage.getItem('pomo-done') || 0)
+function today() {
+  const d = new Date()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${month}-${day}`
+}
+
+function loadToday() {
+  try {
+    const data = JSON.parse(localStorage.getItem(KEY))
+    if (data && data.date === today() && Number.isInteger(data.count) && data.count >= 0) {
+      return data.count
+    }
+  } catch {
+    // 存储不可用或内容损坏时，页面仍可以计时
+  }
+  return 0
+}
+
+let currentDate = today()
+let done = loadToday()
 countEl.textContent = done
+
+function saveToday() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ date: currentDate, count: done }))
+  } catch {
+    // 本次页面内继续计数，但不承诺持久保存
+  }
+}
 
 function render() {
   const m = String(Math.floor(remain / 60)).padStart(2, '0')
   const s = String(remain % 60).padStart(2, '0')
-  document.title = `${m}:${s} · 番茄钟`
   display.textContent = `${m}:${s}`
+  document.title = `${m}:${s} · 番茄钟`
 }
 
-function stop() {
-  running = false
+function clearTick() {
   clearInterval(tick)
   tick = null
-  toggle.textContent = '继续'
 }
 
 function finish() {
-  stop()
+  running = false
+  clearTick()
   remain = 0
   render()
+
+  if (today() !== currentDate) {
+    currentDate = today()
+    done = 0
+  }
   done += 1
-  localStorage.setItem('pomo-done', done)
+  saveToday()
   countEl.textContent = done
   document.title = '休息一下'
   toggle.textContent = '开始'
-  remain = TOTAL
+}
+
+function update() {
+  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+  if (remain === 0) return finish()
+  render()
 }
 
 function start() {
+  if (running) return
+  if (remain === 0) remain = TOTAL
   running = true
   endAt = Date.now() + remain * 1000
   toggle.textContent = '暂停'
-  // 每 250ms 用时间戳算一次剩余，切走标签页也不会变慢
-  tick = setInterval(() => {
-    remain = Math.max(0, Math.round((endAt - Date.now()) / 1000))
-    if (remain === 0) return finish()
-    render()
-  }, 250)
+  tick = setInterval(update, 250)
+  update()
+}
+
+function pause() {
+  if (!running) return
+  remain = Math.max(0, Math.ceil((endAt - Date.now()) / 1000))
+  if (remain === 0) return finish()
+  running = false
+  clearTick()
+  toggle.textContent = '继续'
+  render()
 }
 
 toggle.addEventListener('click', () => {
-  if (running) stop()
+  if (running) pause()
   else start()
 })
 
 reset.addEventListener('click', () => {
-  stop()
+  running = false
+  clearTick()
   remain = TOTAL
-  document.title = '番茄钟'
   toggle.textContent = '开始'
   render()
 })
@@ -134,55 +181,37 @@ reset.addEventListener('click', () => {
 render()
 ```
 
-:::
 ::::
+:::::
 
-一个文件，七十来行，没有依赖，双击就能开。
+本地项目把 HTML、CSS 和 JavaScript 放进同一个 `index.html`，页签只是为了方便阅读。完成版约百行，无外部依赖，可以直接双击打开。
 
-## 用哪些东西，练什么
+## 每一步练什么
 
-| 这一圈的步骤 | 你会练到 | 在哪看 |
+| 步骤 | 内容 | 页面 |
 | --- | --- | --- |
-| 想清楚 | 把"做个番茄钟"变成 6 条验收标准 | [需求卡](/case-timer/requirement/) |
-| 定计划 | 审一份 AI 给的计划，砍掉两个多余的文件 | [第一句话](/case-timer/prompt/) |
-| 生成并运行 | 一次一条任务，看 diff，跑起来 | [跑起来](/case-timer/run/) |
-| 发现问题并修改 | 抓三个真实的 bug，其中一个要你亲手复现 | [三个 bug](/case-timer/bug/) |
-| 检查并交付 | 边界测试、README、交付包 | [交付](/case-timer/finish/) |
+| 想清楚 | 写需求卡，确定刷新、归零和计数规则 | [需求卡](/case-timer/requirement/) |
+| 定计划 | 审查文件、任务顺序和额外功能 | [先交方案](/case-timer/prompt/) |
+| 生成并运行 | 查看 diff，运行并记录实际行为 | [跑起来](/case-timer/run/) |
+| 发现问题并修改 | 处理重复定时器、后台计时和本地存储 | [调试](/case-timer/bug/) |
+| 检查并交付 | 功能验收、边界测试和 README | [交付](/case-timer/finish/) |
 
-## 为什么是这个项目
+## 为什么选这个项目
 
-选它，不是因为它有趣，是因为它刚好含有**三件你以后一定会遇到的事**：
+番茄钟包含三类常见问题。定时功能要考虑浏览器后台节流；开始、暂停和归零涉及状态转换；今日完成数涉及本地保存、数据格式和日期变化。后面做其他页面时，这些问题还会以不同形式出现。
 
-1. **有时间。** 只要程序里有"过一会儿"这件事，就会有定时器、有节流、有误差。这是所有新手第一次撞墙的地方。
-2. **有状态。** 运行中、暂停、归零、完成——四个状态互相转换。状态一多，就一定会漏掉某个转换，就一定会出 bug。
-3. **有持久化。** 数据要存进浏览器，存的方式决定了刷新后它是活着还是死了。
-
-这三个词——**定时、状态、存储**——你之后做的每一个项目里都会有。现在花两小时把它们看透，比做十个"能跑就行"的页面值。
-
-::: tip 时间预算
-- 读这一章：40 分钟
-- 自己动手做一遍：1.5 – 2 小时
-- 只读不做：一小时能读完，但你什么都没学到
-
-**建议边读边做。** 每读完一节，就在自己的文件夹里把那一节做完，再往下。
-:::
+参考用时约 2.5 小时，不包含环境安装。第一次做如果更慢，可以先完成当前小步骤，不必压缩验收时间。
 
 ## 开始之前
 
-你需要：
+确认 VS Code、Git 和 Agent 已按第 0 章完成验收。Git 只需要安装并配置作者信息，项目仓库现在创建。
 
-- VS Code 装好，能打开文件夹（[第 0 章](/start/vscode/)）
-- 一个编程 Agent 能在终端或编辑器里跑起来（[选 Agent](/start/agent/)）
-- Git 初始化好了，至少提交过一次（[Git](/start/git/)）
-
-在桌面上建一个文件夹，就叫 `pomodoro`，用 VS Code 打开它，然后在终端里：
+在 `vibe-lab` 下新建 `pomodoro`，用 VS Code 打开这个项目文件夹，然后在终端执行：
 
 ```bash
 git init
 ```
 
-做完这一步，往下走。
+再新建 `.gitignore`，至少写入 `.env` 和 `.DS_Store`。本项目不需要 `node_modules`，但以后使用依赖时也应忽略它。
 
-::: tip 下一步
-第一件事永远是同一件：[写需求卡](/case-timer/requirement/)。
-:::
+[下一步：写需求卡](/case-timer/requirement/){.read-more}
