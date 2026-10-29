@@ -23,6 +23,7 @@
 
   --vp-home-hero-name-color: var(--vp-c-brand-1);
   --vp-bg-home-hero-name: var(--vp-c-brand-1);
+  --vp-nav-logo-height: 28px;
 }
 
 [data-theme="dark"] {
@@ -44,9 +45,30 @@
 
   --vp-home-hero-name-color: var(--vp-c-brand-1);
   --vp-bg-home-hero-name: var(--vp-c-brand-1);
+  --vp-nav-logo-height: 28px;
 }
 
-/* 5. 首页 Hero 标题消除杂色渐变，呈现纯净现代的 MD3 主题色 */
+/* 5. 首页 Hero 区域 MD3 氛围渐变背景 (Material Design 3 Surface Bloom) */
+.vp-home-hero {
+  background-color: #fff9f6;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(250, 165, 71, 0.16) 0%, rgba(162, 63, 23, 0.08) 40%, transparent 75%),
+    radial-gradient(ellipse 45% 45% at 85% 32%, rgba(232, 102, 50, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 15% 65%, rgba(250, 165, 71, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(255, 248, 244, 0.95) 0%, rgba(255, 252, 250, 0.75) 55%, var(--vp-c-bg-alt) 100%);
+  background-repeat: no-repeat;
+  transition: background var(--vp-t-color);
+}
+
+[data-theme="dark"] .vp-home-hero {
+  background-color: #16141d;
+  background-image:
+    radial-gradient(ellipse 70% 55% at 50% 0%, rgba(208, 188, 255, 0.16) 0%, rgba(124, 77, 255, 0.09) 42%, transparent 75%),
+    radial-gradient(ellipse 45% 45% at 85% 30%, rgba(232, 102, 50, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 15% 65%, rgba(182, 157, 248, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(26, 23, 34, 0.95) 0%, rgba(20, 18, 26, 0.8) 55%, var(--vp-c-bg-alt) 100%);
+}
+
 .vp-home-hero .hero-name {
   background: none !important;
   -webkit-text-fill-color: initial !important;
