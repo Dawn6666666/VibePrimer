@@ -48,10 +48,6 @@ const roads = [
           <span class="hr-go">走这条 →</span>
         </a>
       </div>
-
-      <p class="hr-quote">
-        生成代码不是完成任务。让它跑起来、你能解释每一行为什么在那、别人能照着用起来 —— 才算。
-      </p>
     </div>
   </section>
 </template>

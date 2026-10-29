@@ -236,36 +236,161 @@ render();
 
 在真正的 Agent 结对编程中，**每一次需求变更、计划落盘或单任务交付，都伴随着一次清晰的 Git 提交**。以下是本项目真实跑通的完整线性提交历史：
 
-:::: timeline
-=== 2026-10-28 · 需求锁定
-**`e629d7c` docs: 建立番茄钟最简需求卡**
-- 通过结构化需求访谈，锁定 25 分钟倒计时与单文件交付
-- 明确拒绝音频、图表与复杂设置，确立三条验收基准
+::::: timeline
+- 需求锁定 · `e629d7c` docs: 建立番茄钟最简需求卡
+  time="2026-10-28"
 
-=== 2026-10-28 · 计划锁定
-**`74b2ef9` docs: 建立三步实施计划**
-- 拆分为骨架搭建、倒计时状态流转、持久化计数三个微任务
-- 明确禁止提前写代码，为每个任务预设手动验收操作
+  - 通过结构化需求访谈，锁定 25 分钟倒计时与单文件交付
+  - 明确拒绝音频、图表与复杂设置，确立三条验收基准
 
-=== 2026-10-28 · 任务一交付
-**`17db13e` feat: 完成骨架搭建与静态样式**
-- 交付干净的单文件静态骨架，使用 flex 全屏居中与 tabular-nums
-- `<script>` 数量为 0，严格防止逻辑偷跑
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - REQUIREMENT.md # 初始需求契约卡（新增）
+  :::
 
-=== 2026-10-28 · 任务二交付
-**`6764dc2` feat: 实现核心倒计时与四态状态流转**
-- 接入四态状态机（idle / running / paused / finished）
-- 单定时器防抖防加速，归零停在 00:00 并自动更新网页标题
+  ```markdown title="REQUIREMENT.md 核心契约"
+  # 番茄钟最简需求卡
+  - 运行模式：单文件 index.html，双击 file:// 直接运行，零外部依赖
+  - 状态流转：idle / running / paused / finished 四态状态机
+  - 倒计时规则：固定 25 分钟（1500 秒），归零停在 00:00，标题变「休息一下」
+  - 持久化要求：localStorage 存储「今日完成数」，跨天自动归零，容错降级
+  - 严禁项：不做音频、不做桌面通知权限、不做 Todo 清单、不做历史图表
+  ```
+  ::::
 
-=== 2026-10-28 · 任务三交付
-**`182358b` feat: 完成今日完成数持久化与跨天重置**
-- 单 key 存储今日完成数，按本地时区计算当天日期
-- 实现损坏 JSON 与隐私模式的三层容错降级，不持久化倒计时进度
+- 计划锁定 · `74b2ef9` docs: 建立三步实施计划
+  time="2026-10-28"
 
-=== 2026-10-28 · 收尾交付
-**`dd0478a` chore: 忽略本地截图目录**
-- 新建 .gitignore 隔离过程开发资产，完成项目交付验收
-::::
+  - 拆分为骨架搭建、倒计时状态流转、持久化计数三个微任务
+  - 明确禁止提前写代码，为每个任务预设手动验收操作
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - REQUIREMENT.md
+    - TODO.md # 三步拆解与自测方案（新增）
+  :::
+
+  ```markdown title="TODO.md 实施计划核心清单"
+  - [ ] 任务一：骨架搭建与静态样式
+    - 验收：单文件打开居中显示 25:00，<script> 数量为 0，样式等宽防抖
+  - [ ] 任务二：核心倒计时与四态状态流转
+    - 验收：单定时器防连击，四态正确流转，归零标题更新并停在 00:00
+  - [ ] 任务三：今日完成数持久化与跨天重置
+    - 验收：localStorage 记录次数，跨天与损坏 JSON 优雅容错降级
+  ```
+  ::::
+
+- 任务一交付 · `17db13e` feat: 完成骨架搭建与静态样式
+  time="2026-10-28"
+
+  - 交付干净的单文件静态骨架，使用 flex 全屏居中与 tabular-nums
+  - `<script>` 数量为 0，严格防止逻辑偷跑
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - index.html # 静态骨架与样式（新增，+102 行）
+    - REQUIREMENT.md
+    - TODO.md
+  :::
+
+  ```diff title="index.html 核心骨架变更"
+  + <div class="timer-display" id="timer">25:00</div>
+  + <div class="btn-group">
+  +   <button id="primary" class="btn primary">开始</button>
+  +   <button id="reset" class="btn secondary">重置</button>
+  + </div>
+  + <div class="count-display">今日完成：<span id="count">0</span> 次</div>
+  ```
+
+  ```css title="tabular-nums 防抖等宽与自适应核心样式"
+  .timer-display {
+    font-variant-numeric: tabular-nums; /* 数字等宽，秒数跳动时不左右抖动 */
+    font-size: clamp(72px, 18vw, 152px); /* 响应式自适应大字号 */
+  }
+  ```
+  ::::
+
+- 任务二交付 · `6764dc2` feat: 实现核心倒计时与四态状态流转
+  time="2026-10-28"
+
+  - 接入四态状态机（idle / running / paused / finished）
+  - 单定时器防抖防加速，归零停在 00:00 并自动更新网页标题
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - index.html # 注入状态机与定时器逻辑（修改，+68 行）
+  :::
+
+  ```diff title="index.html 状态机与防加速定时器 Diff"
+  + const STATES = { idle: '开始', running: '暂停', paused: '继续', finished: '开始' };
+  + let state = 'idle', remainingSeconds = 1500, intervalId = null;
+  + 
+  + function startTicking() {
+  +   clearInterval(intervalId); // 连击防抖：清理旧定时器，防止越点越快
+  +   intervalId = setInterval(tick, 1000);
+  + }
+  + function tick() {
+  +   --remainingSeconds;
+  +   if (remainingSeconds <= 0) {
+  +     clearInterval(intervalId); intervalId = null;
+  +     state = 'finished';
+  +     document.title = '休息一下';
+  +   }
+  +   render();
+  + }
+  ```
+  ::::
+
+- 任务三交付 · `182358b` feat: 完成今日完成数持久化与跨天重置
+  time="2026-10-28"
+
+  - 单 key 存储今日完成数，按本地时区计算当天日期
+  - 实现损坏 JSON 与隐私模式的三层容错降级，不持久化倒计时进度
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - index.html # 接入本地持久化与容错降级（修改，+35 行）
+  :::
+
+  ```diff title="index.html localStorage 与容错降级 Diff"
+  + const STORAGE_KEY = 'pomodoro.daily';
+  + function getTodayCount() {
+  +   try {
+  +     const raw = localStorage.getItem(STORAGE_KEY);
+  +     if (!raw) return 0;
+  +     const parsed = JSON.parse(raw);
+  +     return (parsed && parsed.date === getLocalDateStr()) ? (Number(parsed.count) || 0) : 0;
+  +   } catch {
+  +     return 0; // 损坏 JSON、隐私模式或禁用 Storage 时优雅降级为 0
+  +   }
+  + }
+  ```
+  ::::
+
+- 收尾交付 · `dd0478a` chore: 忽略本地截图目录
+  time="2026-10-28"
+
+  - 新建 .gitignore 隔离过程开发资产，完成项目交付验收
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - pomodoro/
+    - index.html
+    - REQUIREMENT.md
+    - TODO.md
+    - .gitignore # 忽略本地测试截图目录（新增，+1 行）
+  :::
+
+  ```diff title=".gitignore"
+  + imgs/
+  ```
+  ::::
+:::::
 
 ## 五步实战演练路线
 

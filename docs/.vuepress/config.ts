@@ -9,7 +9,7 @@ export default defineUserConfig({
     '写给大一下的 Vibe Coding 交互入门指南：先准备 VS Code 和一个编程 Agent，再用两个案例走通「想清楚 → 定计划 → 生成并运行 → 发现问题并修改 → 检查并交付」。',
 
   head: [
-    ['meta', { name: 'theme-color', content: '#4c6ef5' }],
+    ['meta', { name: 'theme-color', content: '#a23f17' }],
     ['meta', { name: 'author', content: 'YG' }],
   ],
 

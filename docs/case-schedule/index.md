@@ -336,36 +336,153 @@ render();
 
 全程使用 `pi` 智能体在终端执行，每一步先定计划、写完立即审查 Diff，形成了完全线性的提交历史：
 
-:::: timeline
-=== 2026-10-28 · 需求锁定
-**`9240319` docs: 建立课程表最简需求卡**
-- 锁定 7 个核心课程字段契约（name, teacher, room, day, start, span, weeks）
-- 确立周次规则与冲突三条件判定机制，明确 9 项验收基准
+::::: timeline
+- 需求锁定 · `9240319` docs: 建立课程表最简需求卡
+  time="2026-10-28"
 
-=== 2026-10-28 · 计划锁定
-**`95dd8b9` docs: 建立三步实施计划**
-- 拆分骨架搭建、数据渲染、冲突持久化三个任务
-- 明确禁止提前写代码，建立防破坏验收步骤
+  - 锁定 7 个核心课程字段契约（name, teacher, room, day, start, span, weeks）
+  - 确立周次规则与冲突三条件判定机制，明确 9 项验收基准
 
-=== 2026-10-28 · 任务一交付
-**`7446120` feat: 完成课表骨架搭建与基础网格**
-- 交付 5×6 原生表格骨架与周次切换栏
-- `COURSES`、`rowspan` 与 `localStorage` 为 0，杜绝提前越界
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - REQUIREMENT.md # 7 字段契约与冲突判定规则（新增）
+  :::
 
-=== 2026-10-28 · 任务二交付
-**`a31b0fc` feat: 实现课程数据渲染与跨节合并**
-- 接入 8 门内置课程，实现按周过滤与 `rowspan` 连续节次合并
-- 采取先到先占策略保护表格列宽，单双周课程交替生效
+  ```markdown title="REQUIREMENT.md 核心契约"
+  # 课程表核心字段契约
+  - 核心字段：name, teacher, room, day (1-5), start (1-6), span (1-4), weeks ('all'|'odd'|'even')
+  - 周次范围：第 1–20 周，支持上一周/下一周切换与单双周计算
+  - 冲突判定三条件：同天 (day 相等) + 节次重叠 + 周次交集
+  - 冲突处理原则：表格展示先录入课程并标红，上方警告栏展开完整冲突清单
+  ```
+  ::::
 
-=== 2026-10-28 · 任务三交付
-**`743e2ff` feat: 实现冲突检测与周次持久化**
-- 实现两两冲突检测与区间聚合算法，红框标记冲突卡片，展开警告栏
-- 实现 `localStorage` 周次存储，加持 1–20 边界钳制与损坏容错兜底
+- 计划锁定 · `95dd8b9` docs: 建立三步实施计划
+  time="2026-10-28"
 
-=== 2026-10-28 · 收尾交付
-**`40b0213` chore: 忽略本地截图**
-- 配置 `.gitignore` 过滤本地开发产生的测试截图，保持仓库整洁
-::::
+  - 拆分骨架搭建、数据渲染、冲突持久化三个任务
+  - 明确禁止提前写代码，建立防破坏验收步骤
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - REQUIREMENT.md
+    - TODO.md # 三步拆解与防越界验收方案（新增）
+  :::
+
+  ```markdown title="TODO.md 实施计划核心清单"
+  - [ ] 任务一：原生 5×6 表格骨架与周次切换栏
+    - 验收：COURSES 为空，严禁提前引入数据或写 rowspan，只交付干净网格
+  - [ ] 任务二：课程数据渲染与跨节 rowspan 合并
+    - 验收：8 门内置课程正确按单双周过滤，先到先占策略保护表格不塌陷
+  - [ ] 任务三：冲突检测算法、红框标记与 localStorage 持久化
+    - 验收：两两判定重叠，冲突课程红框高亮，警告栏通报，当前周持久化
+  ```
+  ::::
+
+- 任务一交付 · `7446120` feat: 完成课表骨架搭建与基础网格
+  time="2026-10-28"
+
+  - 交付 5×6 原生表格骨架与周次切换栏
+  - `COURSES`、`rowspan` 与 `localStorage` 为 0，杜绝提前越界
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - index.html # 原生表格骨架与网格样式（新增，+115 行）
+    - REQUIREMENT.md
+    - TODO.md
+  :::
+
+  ```diff title="index.html 5×6 表格骨架变更"
+  + <div class="toolbar">
+  +   <button id="prevWeekBtn">上一周</button>
+  +   <span id="weekDisplay">第 1 周 / 共 20 周（单周）</span>
+  +   <button id="nextWeekBtn">下一周</button>
+  + </div>
+  + <table id="scheduleTable">
+  +   <thead><tr><th>节次</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th></tr></thead>
+  +   <tbody id="gridBody"></tbody>
+  + </table>
+  ```
+  ::::
+
+- 任务二交付 · `a31b0fc` feat: 实现课程数据渲染与跨节合并
+  time="2026-10-28"
+
+  - 接入 8 门内置课程，实现按周过滤与 `rowspan` 连续节次合并
+  - 采取先到先占策略保护表格列宽，单双周课程交替生效
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - index.html # 数据过滤与 rowspan 动态渲染（修改，+72 行）
+  :::
+
+  ```diff title="index.html rowspan 合并与占位跳过 Diff"
+  + // 5×6 空网格矩阵初始化与按周次过滤
+  + const weekCourses = COURSES.filter(c => filterByWeek(c, currentWeek));
+  + for (const c of weekCourses) {
+  +   const d = c.day - 1, s = c.start - 1;
+  +   if (grid[d][s] === null) {
+  +     grid[d][s] = { course: c, span: c.span };
+  +     for (let r = 1; r < c.span; r++) {
+  +       if (s + r < 6) grid[d][s + r] = 'skip'; // 标记被合并单元格覆盖，渲染时跳过
+  +     }
+  +   }
+  + }
+  ```
+  ::::
+
+- 任务三交付 · `743e2ff` feat: 实现冲突检测与周次持久化
+  time="2026-10-28"
+
+  - 实现两两冲突检测与区间聚合算法，红框标记冲突卡片，展开警告栏
+  - 实现 `localStorage` 周次存储，加持 1–20 边界钳制与损坏容错兜底
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - index.html # 冲突检测算法与 localStorage 持久化（修改，+58 行）
+  :::
+
+  ```diff title="index.html 冲突检测三条件判定 Diff"
+  + // 判定节次是否有交集：max(start1, start2) <= min(end1, end2)
+  + function periodsOverlap(s1, span1, s2, span2) {
+  +   return Math.max(s1, s2) <= Math.min(s1 + span1 - 1, s2 + span2 - 1);
+  + }
+  + // 冲突判定：同天 + 节次重叠 + 周次相交
+  + for (let i = 0; i < weekCourses.length; i++) {
+  +   for (let j = i + 1; j < weekCourses.length; j++) {
+  +     const a = weekCourses[i], b = weekCourses[j];
+  +     if (a.day === b.day && periodsOverlap(a.start, a.span, b.start, b.span) && weeksIntersect(a.weeks, b.weeks)) {
+  +       conflicts.push([a, b]);
+  +     }
+  +   }
+  + }
+  ```
+  ::::
+
+- 收尾交付 · `40b0213` chore: 忽略本地截图
+  time="2026-10-28"
+
+  - 配置 `.gitignore` 过滤本地开发产生的测试截图，保持仓库整洁
+
+  :::: details 展开查看代码 Diff 与文件结构
+  ::: file-tree
+  - schedule/
+    - index.html
+    - REQUIREMENT.md
+    - TODO.md
+    - .gitignore # 过滤本地测试截图（新增，+1 行）
+  :::
+
+  ```diff title=".gitignore"
+  + *.png
+  ```
+  ::::
+:::::
 
 ## 五步实战演练路线
 
