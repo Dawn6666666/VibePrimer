@@ -5,7 +5,7 @@ permalink: /case-schedule/debug/
 createTime: 2026/10/28 10:26:00
 ---
 
-在五步循环中，**第四步是核心质量关口：盯差量与修边界**。
+在五步循环的第四步，重点是检查代码差量（Git Diff）与验证边界条件。
 
 课程表最容易出问题的两个边界：
 1. **周次规则交叉与时段重叠算法**（为什么 `all` 与 `odd` 会冲突，但 `odd` 与 `even` 绝不能冲突？）。
@@ -105,9 +105,9 @@ function saveWeek(week) {
 
 ![任务三最终完成态：冲突告警与红色高亮卡片](/images/case-schedule/task3-final.png)
 
-## 任务三打卡提交
+## 提交任务三
 
-破坏性测试全部通过，提交任务三核心代码：
+测试验证通过后，在终端中提交任务三代码：
 
 ```bash title="任务三提交日志"
 💻 [Bash]:
@@ -118,6 +118,6 @@ $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实
  1 file changed, 230 insertions(+), 43 deletions(-)
 ```
 
-所有功能逻辑全部闭环交付。最后一步，完成工程清理与全量验收。
+至此核心功能已全部实现。最后一步进行全量验收与工程清理。
 
 [下一步：检查并交付](/case-schedule/ship/){.read-more}

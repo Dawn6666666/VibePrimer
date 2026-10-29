@@ -334,10 +334,10 @@ render();
 
 ## 全流程 Git 提交历史
 
-全程使用 `pi` 智能体在终端执行，每一步先定计划、写完立即审查 Diff，形成了完全线性的提交历史：
+使用 `pi` 在终端中配合开发，每一步先定计划、完成后审查 Diff 并分步提交：
 
 ::::: timeline
-- 需求锁定 · `9240319` docs: 建立课程表最简需求卡
+- 保存需求 · `9240319` docs: 建立课程表最简需求卡
   time="2026-10-28"
 
   - 锁定 7 个核心课程字段契约（name, teacher, room, day, start, span, weeks）
@@ -346,10 +346,10 @@ render();
   :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
   - schedule/
-    - REQUIREMENT.md # 7 字段契约与冲突判定规则（新增）
+    - REQUIREMENT.md # 需求文档与字段定义（新增）
   :::
 
-  ```markdown title="REQUIREMENT.md 核心契约"
+  ```markdown title="REQUIREMENT.md 核心内容"
   # 课程表核心字段契约
   - 核心字段：name, teacher, room, day (1-5), start (1-6), span (1-4), weeks ('all'|'odd'|'even')
   - 周次范围：第 1–20 周，支持上一周/下一周切换与单双周计算
@@ -358,7 +358,7 @@ render();
   ```
   ::::
 
-- 计划锁定 · `95dd8b9` docs: 建立三步实施计划
+- 保存计划 · `95dd8b9` docs: 建立三步实施计划
   time="2026-10-28"
 
   - 拆分骨架搭建、数据渲染、冲突持久化三个任务
@@ -368,7 +368,7 @@ render();
   ::: file-tree
   - schedule/
     - REQUIREMENT.md
-    - TODO.md # 三步拆解与防越界验收方案（新增）
+    - TODO.md # 实施计划与验收方案（新增）
   :::
 
   ```markdown title="TODO.md 实施计划核心清单"
@@ -385,7 +385,7 @@ render();
   time="2026-10-28"
 
   - 交付 5×6 原生表格骨架与周次切换栏
-  - `COURSES`、`rowspan` 与 `localStorage` 为 0，杜绝提前越界
+  - 只包含静态表格结构，暂不引入课程数据与存储逻辑
 
   :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
@@ -490,19 +490,19 @@ render();
 
 ::: steps
 1. **[第一步：先定数据，再谈界面](/case-schedule/requirement/)**
-   - 通过 8 个技术访谈问题收敛数据契约，编写 `REQUIREMENT.md` 并打下根提交。
+   - 通过 8 个问题明确数据结构与冲突规则，生成 `REQUIREMENT.md` 并完成首次提交。
 
 2. **[第二步：让它先交方案](/case-schedule/plan/)**
-   - 强令 Agent 输出包含三阶段验证的 `TODO.md`，杜绝一次性冒进。
+   - 要求 Agent 输出包含三阶段验证步骤的 `TODO.md`，先确认计划再写代码。
 
 3. **[第三步：生成并运行（任务一与任务二）](/case-schedule/build/)**
-   - 单任务派发：先写空表格骨架，再注入数据与 `rowspan` 合并算法。
+   - 单任务推进：先完成基础表格骨架，再添加数据过滤与 `rowspan` 跨节合并。
 
 4. **[第四步：盯差量与修边界（任务三）](/case-schedule/debug/)**
-   - 审查冲突检测三条件判定、红框告警逻辑与 `localStorage` 越界容错。
+   - 审查冲突检测算法、告警展示与 `localStorage` 容错处理。
 
 5. **[第五步：检查并交付（全量验收与收工）](/case-schedule/ship/)**
-   - 逐项核对 9 条验收标准，配置 `.gitignore`，检视 6 个原子提交。
+   - 对照 9 条验收标准逐项测试，配置 `.gitignore`，检视完整的 Git 提交历史。
 :::
 
 ## 开始之前：环境准备

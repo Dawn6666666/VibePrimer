@@ -5,15 +5,15 @@ permalink: /case-schedule/requirement/
 createTime: 2026/10/28 10:15:00
 ---
 
-课程表比番茄钟更进一步：不仅界面更复杂，底层更依赖清晰的数据契约。每门课有 7 个核心字段，周次有单周/双周之分，节次有连续跨度，同一个时段还可能出现选课冲突。
+课程表比番茄钟更进一步：界面更复杂，底层还依赖清晰的数据结构。每门课有 7 个核心字段，周次有单周/双周之分，节次有连续跨度，同一时段还可能出现选课冲突。
 
-如果在没有锁定数据结构之前就让 Agent 写界面，你往往会陷入“界面排版写好了，却发现单双周漏了字段”的返工泥潭。**第一步的铁律是：先定数据，再谈界面**。
+如果在确定数据结构前就开始写界面，很容易在后续发现遗漏字段而需要大面积修改。因此第一步的重点是先定数据，再谈界面。
 
 ## 让 Agent 先做技术访谈
 
 在终端 `schedule` 目录下启动 `pi`，发送以下结构化访谈指令：
 
-```text title="数据契约访谈提示词"
+```text title="数据结构访谈提示词"
 我要做一个本地课程表网页，双击 index.html 就能打开。
 先不要写代码，也不要修改任何文件。
 最多问我 8 个会影响实现的问题，一次列完。
@@ -48,9 +48,9 @@ createTime: 2026/10/28 10:15:00
 
 ::::
 
-## 课程数据字段契约
+## 课程数据字段定义
 
-基于访谈确定的 7 个核心字段，建立不可破坏的数据契约：
+基于访谈确定的 7 个核心字段如下：
 
 :::: field-group
 
@@ -98,7 +98,7 @@ createTime: 2026/10/28 10:15:00
 
 ::::
 
-## 需求落盘：真实的 REQUIREMENT.md
+## 整理需求文档：REQUIREMENT.md
 
 Agent 在项目根目录下生成了规范的 [REQUIREMENT.md](file:///home/yoake/Code/schedule/REQUIREMENT.md)（93 行），清晰定义了边界、冲突判定规则与验收标准：
 
@@ -166,32 +166,32 @@ name(string), teacher(string), room(string), day(1..5), start(1..6), span(1..4),
 - #3 与 #8 同天同节且都是 all → 真实冲突组：#3 渲染并标红，#8 出现在警告栏。
 ```
 
-## 提交需求基线
+## 首次提交：保存需求文档
 
-需求卡落盘后，立即让 Agent 提交入库，锁死第一道防线：
+需求确认无误后，让 Agent 在终端中将 `REQUIREMENT.md` 提交到 Git：
 
-:::: tabs
+::: steps
+1. **向 Agent 发送提交指令**
+   让 Agent 调用终端执行 Git 暂存与提交：
 
-@tab 指令
+   ```text title="提交提示词"
+   请调用终端命令，将 REQUIREMENT.md 提交入库，提交信息为 "docs: 建立课程表最简需求卡"。
+   ```
 
-```text title="提交提示词"
-请调用终端命令，将 REQUIREMENT.md 提交入库，提交信息为 "docs: 建立课程表最简需求卡"。
-```
+2. **Agent 调用终端执行提交**
+   Agent 在终端中执行命令完成首次提交：
 
-@tab Agent 工具执行
+   ```bash title="终端执行输出"
+   💻 [Bash]:
+   $ cd /home/yoake/Code/schedule && git add REQUIREMENT.md && git commit -m "docs: 建立课程表最简需求卡"
 
-```bash title="终端执行输出"
-💻 [Bash]:
-$ cd /home/yoake/Code/schedule && git add REQUIREMENT.md && git commit -m "docs: 建立课程表最简需求卡"
+   📋 [Result]:
+   [main（根提交） 9240319] docs: 建立课程表最简需求卡
+    1 file changed, 93 insertions(+)
+    create mode 100644 REQUIREMENT.md
+   ```
+:::
 
-📋 [Result]:
-[main（根提交） 9240319] docs: 建立课程表最简需求卡
- 1 file changed, 93 insertions(+)
- create mode 100644 REQUIREMENT.md
-```
-
-::::
-
-需求卡与数据契约已锁定，下一步进入计划阶段：
+需求文档已提交，下一步进入制定计划阶段：
 
 [下一步：让 Agent 先交方案](/case-schedule/plan/){.read-more}
