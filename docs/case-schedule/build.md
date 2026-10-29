@@ -15,7 +15,7 @@ createTime: 2026/10/28 10:20:00
 
 严格限制 Agent 活动范围，禁止提前写入数据与冲突逻辑：
 
-```text
+```text title="任务一派发提示词"
 严格只实现【任务一：骨架搭建与基础网格】：
 - 创建 index.html，包含周次切换栏、5列6行基础表格、空网格样式与响应式布局。
 - 绝不要接入 COURSES 数据渲染！绝不要做冲突检测！
@@ -42,7 +42,7 @@ Agent 生成了极简的单文件 `index.html`（251 行）。我们审查代码
 
 验收通过后，在终端执行 Git 提交：
 
-```bash
+```bash title="任务一提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 完成课表骨架搭建与基础网格"
 
@@ -60,7 +60,7 @@ $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 完
 
 骨架与列宽已经锁定，现在让 Agent 注入课程数据与 `rowspan` 合并算法：
 
-```text
+```text title="任务二派发提示词"
 任务一验收通过，骨架与响应式表现非常规整。
 
 请执行【任务二：课程数据接入与动态渲染】：
@@ -133,7 +133,7 @@ for (let p = 0; p < 6; p++) {
 
 ### 4. 任务二打卡提交
 
-```bash
+```bash title="任务二提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现课程数据渲染与跨节合并"
 
@@ -148,7 +148,7 @@ $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实
 
 代码以原子级颗粒度推进到了第 4 个 Commit：
 
-```text
+```text title="git log --oneline 提交历史"
 a31b0fc (HEAD -> main) feat: 实现课程数据渲染与跨节合并
 7446120 feat: 完成课表骨架搭建与基础网格
 95dd8b9 docs: 建立三步实施计划

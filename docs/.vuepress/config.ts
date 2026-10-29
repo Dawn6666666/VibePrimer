@@ -37,8 +37,11 @@ export default defineUserConfig({
       npmTo: ['pnpm', 'npm'],
       demo: true,
       mermaid: true,
-      mark: 'lazy',
+      mark: 'eager',
       icon: { provider: 'iconify' },
+      abbr: true,
+      annotation: true,
+      caniuse: true,
       math: false,
     },
 

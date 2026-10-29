@@ -55,7 +55,7 @@ createTime: 2026/10/28 09:48:07
 
 ## 同一个番茄钟，两种写法
 
-:::: flex between gap="20"
+:::: card-grid cols="2"
 
 <Card title="难以验收" icon="carbon:close-outline">
 

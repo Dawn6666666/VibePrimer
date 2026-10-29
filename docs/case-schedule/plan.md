@@ -13,7 +13,7 @@ createTime: 2026/10/28 10:17:00
 
 向 `pi` 下达明确的分解计划指令，强令其在写代码前先落盘 `TODO.md`：
 
-```text
+```text title="定计划提示词"
 先不要写 index.html！严格按五步循环来，现在执行【第二步：定计划】。
 
 在项目根目录下生成 TODO.md，把实现拆成 3 个独立的小任务：
@@ -29,7 +29,7 @@ createTime: 2026/10/28 10:17:00
 
 Agent 随后在根目录下生成了规范详尽的 [TODO.md](file:///home/yoake/Code/schedule/TODO.md)（90 行），精确拆解为三个小任务：
 
-```markdown
+```markdown title="TODO.md"
 # 实施计划：课程表 Demo
 
 单一交付文件 `index.html`（内联 CSS + JS），按顺序完成三个任务，每个任务结束后都能在浏览器中手动验收。
@@ -91,13 +91,13 @@ Agent 随后在根目录下生成了规范详尽的 [TODO.md](file:///home/yoake
 
 @tab 用户指令
 
-```text
+```text title="计划锁定提示词"
 生成完后，在终端执行 git 提交，提交信息为 "docs: 建立三步实施计划"。
 ```
 
 @tab Agent 工具执行
 
-```bash
+```bash title="终端执行输出"
 💻 [Bash]:
 $ cd /home/yoake/Code/schedule && git add TODO.md && git commit -m "docs: 建立三步实施计划"
 

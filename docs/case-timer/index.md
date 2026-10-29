@@ -292,7 +292,7 @@ render();
 
 确认 VS Code、Git 和 Agent 已完成配置。在终端中新建 `pomodoro` 目录并初始化 Git 仓库，然后用 VS Code 打开该工作区：
 
-```bash
+```bash title="初始化 pomodoro 项目目录"
 mkdir -p ~/Code/pomodoro
 cd ~/Code/pomodoro
 git init

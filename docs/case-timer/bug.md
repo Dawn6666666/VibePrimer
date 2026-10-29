@@ -11,7 +11,7 @@ createTime: 2026/10/28 10:01:42
 
 ## 派发任务三指令
 
-```text
+```text title="任务三派发提示词"
 请执行【任务三：持久化与完成计数】：
 - 按照 TODO.md 任务三要求，在页面上渲染「今日完成：0 次」文本（保持极简低调排版）。
 - 倒计时归零时完成数 +1，写入 localStorage（带当天日期 YYYY-MM-DD）。
@@ -105,7 +105,7 @@ Agent 对任务三执行了严苛的破坏性测试矩阵：
 
 破坏性测试全部通过，提交任务三核心代码：
 
-```bash
+```bash title="任务三提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完成今日完成数持久化与跨天重置"
 

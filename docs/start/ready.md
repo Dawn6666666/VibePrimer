@@ -13,8 +13,8 @@ createTime: 2026/10/28 09:58:48
 
 先看终端报错，再按常见问题排查。不要为了消除一条环境报错就盲目让 Agent 随意修改系统配置。
 
-::: collapse
-- `code .` 提示找不到命令
+::: collapse accordion
+- :+ `code .` 提示找不到命令
 
   - **Windows**：重新运行 VS Code 安装包，务必勾选“添加到 PATH”后重新安装。安装后必须关闭旧终端并打开新终端，才能读取新的 PATH 环境变量。
   - **macOS**：打开 VS Code，按快捷键 `Cmd+Shift+P` 呼出命令面板，输入并选择 **Shell Command: Install 'code' command in PATH**，按提示完成授权后重启终端。

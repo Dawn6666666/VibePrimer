@@ -35,13 +35,13 @@ createTime: 2026/10/28 10:34:00
 
 @tab 用户指令
 
-```text
+```text title="收尾提示词"
 在根目录下生成 .gitignore，写入 "*.png" 规则以忽略本地测试截图，提交信息为 "chore: 忽略本地截图"。
 ```
 
 @tab Agent 执行日志
 
-```bash
+```bash title="收尾提交日志"
 💻 [Bash]:
 $ echo "*.png" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图"
 
@@ -57,7 +57,7 @@ $ echo "*.png" > .gitignore && git add .gitignore && git commit -m "chore: 忽�
 
 在终端中执行 `git log --oneline`，检视全程六次原子提交：
 
-```text
+```text title="完整 Git 提交历史 (git log --oneline)"
 40b0213 (HEAD -> main) chore: 忽略本地截图
 743e2ff feat: 实现冲突检测与周次持久化
 a31b0fc feat: 实现课程数据渲染与跨节合并

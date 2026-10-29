@@ -38,7 +38,7 @@ createTime: 2026/10/28 09:52:49
 
 ## 一次番茄钟边界测试
 
-```text
+```text title="番茄钟边界测试清单"
 1. 打开页面，等待 10 秒，应保持 25:00。
 2. 开始后再连续点击主按钮，按钮应按开始、暂停、继续切换，计时速度不变。
 3. 暂停后等待 5 秒，数字不变；继续后从原位置走。
@@ -54,7 +54,7 @@ createTime: 2026/10/28 09:52:49
 
 ## 交付包里放什么
 
-```text
+```file-tree title="标准项目交付文件树"
 pomodoro/
 ├── index.html
 ├── REQUIREMENT.md
@@ -63,14 +63,14 @@ pomodoro/
 ├── screenshots/
 │   ├── 01-首页.png
 │   └── 02-计时中.png
-└── BUGS.md             ← 有调试记录时保留
+└── BUGS.md             # 有调试记录时保留
 ```
 
 部署到网上后，可以在 README 顶部写访问链接。本地交付则写清入口文件和需要的软件。
 
 ## README 示例
 
-```markdown
+```markdown title="README.md 示例"
 # 番茄钟
 
 一个本地单页番茄钟，无外部依赖。页面本身不请求外部 API。
@@ -113,7 +113,7 @@ GitHub Pages 首次发布可以这样做：
 1. 在 GitHub 新建一个空仓库，不要重复添加本地已有的 README。
 2. 如果本地还没有远程仓库，配置地址并首次推送：
 
-   ```bash
+   ```bash title="配置远程仓库并首次推送" {2-3}
    git branch -M main
    git remote add origin https://github.com/你的用户名/仓库名.git
    git push -u origin main
@@ -130,7 +130,7 @@ GitHub Pages 首次发布可以这样做：
 
 ## 用新会话检查 README
 
-```text
+```text title="README 审查提示词"
 你只能阅读我接下来提供的 README，不要参考项目历史或其他文件。
 按这份说明操作，指出缺少的运行条件、命令、入口和预期结果。
 不要修改代码。
@@ -140,9 +140,11 @@ GitHub Pages 首次发布可以这样做：
 
 ## 最后的收尾顺序
 
+::: steps
 1. 按验收标准和边界清单测试。
 2. 补齐 README、AI 使用说明和截图。
 3. 删除临时调试日志与注释掉的废代码；有明确用途的日志可以保留。
 4. 清理后重新启动，再跑一次核心验收。
 5. 查看 diff，提交交付版。
 6. 打包或发布，并从交付地址再验证一次。
+:::

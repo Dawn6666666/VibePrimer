@@ -11,29 +11,29 @@ createTime: 2026/10/28 10:00:33
 
 不要把真实 key 写进源码、提示词或截图：
 
-```js
+```js title="绝对不要写死真实密钥"
 const API_KEY = 'sk-xxxxxxxxxxxxxxxx'
 ```
 
 Node 项目可以把密钥放在不提交的 `.env`，并提交只有变量名的 `.env.example`：
 
-```text
+```ini title=".env (不提交到仓库)"
 # .env，不提交
 API_KEY=sk-xxxxxxxxxxxx
 ```
 
-```text
+```ini title=".env.example (安全模板，可提交)"
 # .env.example，可以提交
 API_KEY=
 ```
 
 `.gitignore` 至少包含 `.env`。在支持 `--env-file` 的 Node 版本里，可以这样加载：
 
-```bash
+```bash title="Node 20+ 原生加载环境变量"
 node --env-file=.env server.js
 ```
 
-```js
+```js title="读取并校验环境变量" {1-2}
 const key = process.env.API_KEY
 if (!key) throw new Error('缺少 API_KEY')
 ```

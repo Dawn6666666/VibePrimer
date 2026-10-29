@@ -15,7 +15,7 @@ createTime: 2026/10/28 10:01:16
 
 严格限制 Agent 的活动范围，禁止越界写逻辑：
 
-```text
+```text title="任务一派发提示词"
 严格只实现【任务一：骨架搭建与静态样式】：
 - 创建 index.html，包含 HTML 骨架、极简居中排版和 tabular-nums 时间样式。
 - 绝对不要写倒计时与 JavaScript 逻辑！只完成静态骨架。
@@ -37,7 +37,7 @@ Agent 自动调用内置无头浏览器完成了首屏渲染截屏：
 
 你也可以在本地终端中运行系统默认浏览器打开：
 
-```bash
+```bash title="在默认浏览器中打开"
 xdg-open index.html   # Linux
 open index.html       # macOS
 start index.html      # Windows
@@ -49,7 +49,7 @@ start index.html      # Windows
 
 验收通过后，命令 Agent 提交任务一代码：
 
-```bash
+```bash title="任务一提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完成骨架搭建与静态样式"
 
@@ -67,7 +67,7 @@ $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完
 
 骨架已经锁定，现在让 Agent 注入核心状态机：
 
-```text
+```text title="任务二派发提示词"
 任务一验收通过，静态骨架和样式完全符合预期。
 
 请执行【任务二：核心倒计时与状态流转】：
@@ -127,7 +127,7 @@ Agent 使用自动化浏览器执行了点击测试矩阵，验证结果如下�
 
 在浏览器中验证无误后，提交任务二：
 
-```bash
+```bash title="任务二提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 实现核心倒计时与四态状态流转"
 
@@ -142,7 +142,7 @@ $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 实
 
 回看目前的 Git 提交历史，项目以极高的确定性稳步推进：
 
-```text
+```text title="git log --oneline 提交历史"
 6764dc2 (HEAD -> main) feat: 实现核心倒计时与四态状态流转
 17db13e feat: 完成骨架搭建与静态样式
 74b2ef9 docs: 建立三步实施计划

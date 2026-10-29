@@ -11,8 +11,7 @@ createTime: 2026/10/28 10:00:15
 
 下面使用两个 `.mjs` 文件。`.mjs` 明确表示 ES 模块，不需要额外配置 `package.json`。
 
-```js
-// format.mjs
+```js title="format.mjs"
 export function formatTime(seconds) {
   if (!Number.isFinite(seconds)) throw new TypeError('seconds 必须是有限数字')
   const whole = Math.max(0, Math.floor(seconds))
@@ -22,8 +21,7 @@ export function formatTime(seconds) {
 }
 ```
 
-```js
-// format.test.mjs
+```js title="format.test.mjs"
 import assert from 'node:assert/strict'
 import { formatTime } from './format.mjs'
 
@@ -40,7 +38,7 @@ console.log('7 条测试全部通过')
 
 把两个文件放在同一目录，运行：
 
-```bash
+```bash title="运行测试"
 node format.test.mjs
 ```
 
@@ -62,7 +60,7 @@ node format.test.mjs
 
 可以让 Agent 先写测试和占位实现：
 
-```text
+```text title="测试先行提示词"
 实现 formatTime(seconds)，规则是负数归零、小数向下取整、非有限数字抛 TypeError。
 先写 format.test.mjs 和会抛出「尚未实现」的 format.mjs 占位导出。
 运行一次，确认失败来自预期断言，而不是找不到模块或语法错误。
@@ -77,7 +75,7 @@ node format.test.mjs
 
 纯函数不直接读写页面、网络或存储，同样输入总会得到同样输出，最适合用 Node 断言检查。例如剩余时间计算：
 
-```js
+```js title="剩余时间计算纯函数"
 export function remainingSeconds(endAt, now) {
   return Math.max(0, Math.ceil((endAt - now) / 1000))
 }
@@ -89,7 +87,7 @@ export function remainingSeconds(endAt, now) {
 
 ## 把测试命令写进项目规则
 
-```markdown
+```markdown title="AGENTS.md 测试约定示例"
 ## 完成标准
 - 运行 node format.test.mjs，全部通过
 - 对普通脚本运行 node --check script.js，无语法错误

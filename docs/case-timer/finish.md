@@ -26,7 +26,7 @@ createTime: 2026/10/28 10:01:58
 
 ::: tip 恢复正式时长
 所有短时长（3 秒）测试完毕后，务必确认第 126 行代码已恢复为正式时长：
-```js
+```js title="恢复正式 25 分钟倒计时"
 const DURATION_SECONDS = 25 * 60;
 ```
 :::
@@ -41,7 +41,7 @@ const DURATION_SECONDS = 25 * 60;
 
 @tab 用户指令
 
-```text
+```text title="收尾提示词"
 全功能验收通过！跨天检测与容错降级逻辑非常完备。
 请执行最后的收尾工作：
 1. 在根目录下生成 .gitignore，忽略 imgs/ 目录，提交信息为 "chore: 忽略本地截图目录"。
@@ -50,7 +50,7 @@ const DURATION_SECONDS = 25 * 60;
 
 @tab Agent 执行日志
 
-```bash
+```bash title="收尾提交日志"
 💻 [Bash]:
 $ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图目录"
 
@@ -66,7 +66,7 @@ $ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽�
 
 运行 `git log --oneline`，检视整个演练过程产生的提交线：
 
-```text
+```text title="完整 Git 提交历史 (git log --oneline)"
 dd0478a (HEAD -> main) chore: 忽略本地截图目录
 182358b feat: 完成今日完成数持久化与跨天重置
 6764dc2 feat: 实现核心倒计时与四态状态流转

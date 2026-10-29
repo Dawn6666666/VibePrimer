@@ -13,7 +13,7 @@ createTime: 2026/10/28 10:15:00
 
 在终端 `schedule` 目录下启动 `pi`，发送以下结构化访谈指令：
 
-```text
+```text title="数据契约访谈提示词"
 我要做一个本地课程表网页，双击 index.html 就能打开。
 先不要写代码，也不要修改任何文件。
 最多问我 8 个会影响实现的问题，一次列完。
@@ -102,7 +102,7 @@ createTime: 2026/10/28 10:15:00
 
 Agent 在项目根目录下生成了规范的 [REQUIREMENT.md](file:///home/yoake/Code/schedule/REQUIREMENT.md)（93 行），清晰定义了边界、冲突判定规则与验收标准：
 
-```markdown
+```markdown title="REQUIREMENT.md"
 # 课程表 Demo 最简需求卡
 
 ## 1. 范围
@@ -174,13 +174,13 @@ name(string), teacher(string), room(string), day(1..5), start(1..6), span(1..4),
 
 @tab 指令
 
-```text
+```text title="提交提示词"
 请调用终端命令，将 REQUIREMENT.md 提交入库，提交信息为 "docs: 建立课程表最简需求卡"。
 ```
 
 @tab Agent 工具执行
 
-```bash
+```bash title="终端执行输出"
 💻 [Bash]:
 $ cd /home/yoake/Code/schedule && git add REQUIREMENT.md && git commit -m "docs: 建立课程表最简需求卡"
 

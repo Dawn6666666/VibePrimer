@@ -15,7 +15,7 @@ createTime: 2026/10/28 10:26:00
 
 ## 派发任务三指令
 
-```text
+```text title="任务三派发提示词"
 请执行【任务三：冲突检测与周次持久化】：
 - 实现两两冲突检测算法（同 day、节次区间重叠、周次有交集）。
 - 网格中被冲突占位的课程卡片添加红色标记（冲突警示边框或标签）。
@@ -109,7 +109,7 @@ function saveWeek(week) {
 
 破坏性测试全部通过，提交任务三核心代码：
 
-```bash
+```bash title="任务三提交日志"
 💻 [Bash]:
 $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现冲突检测与周次持久化"
 

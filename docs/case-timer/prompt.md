@@ -15,7 +15,7 @@ createTime: 2026/10/28 10:00:57
 
 向 Agent 发送以下明确指令：
 
-```text
+```text title="定计划提示词"
 现在执行【定计划】：
 先不要写 index.html！在根目录下生成 TODO.md，把实现拆成 3 个独立的小任务：
 - 任务一：骨架搭建与静态样式（HTML 结构、居中排版、初始时间与按钮）
@@ -32,7 +32,7 @@ createTime: 2026/10/28 10:00:57
 
 Agent 随后在项目根目录生成了 [TODO.md](file:///home/yoake/Code/pomodoro/TODO.md)（共 38 行），将宏观需求拆解为可独立交付、可独立验证的三个任务：
 
-```markdown
+```markdown title="TODO.md"
 # 实施计划：番茄钟 Demo
 
 单一交付文件 `index.html`（内联 CSS + JS），按顺序完成三个任务，每个任务结束都能在浏览器里手动验证。
@@ -90,14 +90,14 @@ Agent 随后在项目根目录生成了 [TODO.md](file:///home/yoake/Code/pomodo
 
 @tab 用户指令
 
-```text
+```text title="计划锁定提示词"
 计划非常清晰。
 请在终端执行提交：把 TODO.md 提交，提交信息为 "docs: 建立三步实施计划"。
 ```
 
 @tab Agent 执行日志
 
-```bash
+```bash title="终端执行输出"
 💻 [Bash]:
 $ cd /home/yoake/Code/pomodoro && git add TODO.md && git commit -m "docs: 建立三步实施计划"
 

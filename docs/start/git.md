@@ -65,7 +65,7 @@ flowchart LR
 
 ## 常用命令
 
-```bash
+```bash title="Git 常用工作流命令" {3-4}
 git init                       # 第一次：在当前项目文件夹初始化仓库
 git status                     # 查看修改、暂存和未跟踪文件
 git add .                      # 把当前目录下的改动加入暂存区
@@ -89,7 +89,7 @@ git diff --staged              # 查看已经暂存的改动
 
 在项目根目录建一个名为 `.gitignore` 的文件：
 
-```text
+```text title=".gitignore"
 node_modules/
 .env
 *.log

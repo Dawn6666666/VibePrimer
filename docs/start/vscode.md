@@ -130,7 +130,7 @@ brew install --cask visual-studio-code
 
 按 `Ctrl+,` 打开设置，再点右上角的「打开设置 (JSON)」。如果文件里已有内容，不要整份覆盖；把需要的字段合并进去，并注意字段之间的逗号。
 
-```json
+```json title="settings.json" {2-3}
 {
   "files.autoSave": "onFocusChange",
   "editor.formatOnSave": true,

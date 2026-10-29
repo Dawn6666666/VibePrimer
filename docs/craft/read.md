@@ -13,7 +13,7 @@ Simon Willison 提出过一条值得借鉴的原则：不能向别人准确解�
 
 先读文件名、入口和函数名，暂时不深入实现：
 
-```text
+```text title="文件职责与关键入口"
 index.html    页面结构与脚本入口
 data.js       课程数据
 app.js        校验、计算和渲染
@@ -49,7 +49,7 @@ flowchart LR
 
 ## 让 Agent 帮你解释
 
-```text
+```text title="代码解释与提问提示词"
 停止修改代码。
 按文件职责、核心数据流和边界处理三部分解释当前实现。
 每部分引用需要阅读的代码位置，不要逐行复述。
@@ -62,7 +62,7 @@ Agent 的解释也是辅助材料。它给出的行号、调用关系和原因�
 
 ## 一个小练习
 
-```js
+```js title="有 bug 的计数器" {8-9}
 const state = { count: 0 }
 
 function render() {
@@ -133,14 +133,14 @@ render()
 
 逐行复述代码的注释通常没有帮助：
 
-```js
+```js title="复述代码的无用注释"
 // count 加一
 count++
 ```
 
 解释外部约束或非显而易见原因的注释值得保留：
 
-```js
+```js title="解释外部约束的有益注释"
 // 第 1 周按单周计算；week 始终从 1 开始
 if (course.weeks === 'odd') return week % 2 === 1
 ```

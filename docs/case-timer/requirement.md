@@ -13,7 +13,7 @@ createTime: 2026/10/28 09:54:13
 
 在已打开的 `pomodoro` 项目中，向 Agent 发送以下访谈提示词：
 
-```text
+```text title="结构化访谈提示词"
 我要做一个本地番茄钟网页，双击就能打开。
 先不要写代码。最多问我 10 个会影响实现的问题，一次列完。
 不要问配色和字体，问题按重要性排序。
@@ -93,7 +93,7 @@ createTime: 2026/10/28 09:54:13
 
 根据上面的问答，Agent 在项目根目录生成了最简需求卡 [REQUIREMENT.md](file:///home/yoake/Code/pomodoro/REQUIREMENT.md)（仅 44 行，干净克制）：
 
-```markdown
+```markdown title="REQUIREMENT.md"
 # 番茄钟 Demo 需求（最简版）
 
 教学演示用，拒绝过度设计。单文件 `index.html`，内联全部 CSS 与 JS，双击用 `file://` 直接打开即可使用，不依赖网络、构建或本地服务器。
@@ -163,14 +163,14 @@ stateDiagram-v2
 
 @tab 用户指令
 
-```text
+```text title="提交提示词"
 这份 REQUIREMENT.md 很好。
 请调用终端命令，把 REQUIREMENT.md 暂存并提交，提交信息为 "docs: 建立番茄钟最简需求卡"。
 ```
 
 @tab Agent 工具调用
 
-```bash
+```bash title="终端执行输出"
 💻 [Bash]:
 $ cd /home/yoake/Code/pomodoro && git add REQUIREMENT.md && git commit -m "docs: 建立番茄钟最简需求卡"
 

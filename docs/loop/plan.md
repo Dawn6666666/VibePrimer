@@ -9,7 +9,7 @@ createTime: 2026/10/28 09:51:40
 
 ## 让 Agent 先交方案
 
-:::: code-tabs
+:::: tabs
 
 @tab Claude Code
 
@@ -21,7 +21,7 @@ createTime: 2026/10/28 09:51:40
 
 @tab 通用提示词
 
-```text
+```text title="方案需求提示词"
 不要写或修改任何代码。先读 REQUIREMENT.md，只输出：
 1. 文件清单，以及每个文件的职责
 2. 实施顺序和原因

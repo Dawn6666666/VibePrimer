@@ -15,6 +15,10 @@ createTime: 2026/10/28 10:12:00
 
 ::::: demo title="完成版课程表" desc="支持 1–20 周次切换、跨节次 rowspan 合并、单双周交替与三条件冲突检测（先录入者胜+标红，警告栏保留全部）。"
 
+:::: code-tabs
+
+@tab HTML
+
 ```html
 <div class="app">
   <div class="week-bar">
@@ -41,272 +45,279 @@ createTime: 2026/10/28 10:12:00
     </table>
   </div>
 </div>
+```
 
-<style>
-  :root {
-    --bg-page: #f8fafc;
-    --bg-card: #ffffff;
-    --border: #e2e8f0;
-    --text-primary: #0f172a;
-    --text-muted: #64748b;
-    --primary: #2563eb;
-    --primary-bg: #eff6ff;
-    --primary-border: #bfdbfe;
-    --warn-bg: #fef2f2;
-    --warn-border: #fecaca;
-    --warn-text: #991b1b;
-  }
-  .app {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 16px;
-    font-family: system-ui, -apple-system, sans-serif;
-    color: var(--text-primary);
-    background: var(--bg-card);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-  }
-  .week-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-    padding: 12px 16px;
-    background: var(--bg-page);
-    border-radius: 8px;
-    border: 1px solid var(--border);
-  }
-  .week-bar button {
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--primary);
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .week-bar button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  .week-display {
-    font-size: 15px;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .warning-bar {
-    margin-bottom: 16px;
-    padding: 10px 14px;
-    background: var(--warn-bg);
-    border: 1px solid var(--warn-border);
-    border-radius: 8px;
-    color: var(--warn-text);
-    font-size: 13px;
-    line-height: 1.5;
-  }
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-  table.schedule {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-    table-layout: fixed;
-    text-align: center;
-  }
-  table.schedule th, table.schedule td {
-    border: 1px solid var(--border);
-    padding: 8px 6px;
-    vertical-align: top;
-  }
-  table.schedule th {
-    background: var(--bg-page);
-    font-weight: 600;
-    font-size: 13px;
-  }
-  .col-period { width: 68px; }
-  .period-label {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-  .course-card {
-    background: var(--primary-bg);
-    border: 1px solid var(--primary-border);
-    border-radius: 6px;
-    padding: 6px;
-    text-align: left;
-    height: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .course-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primary);
-    line-height: 1.3;
-  }
-  .course-meta {
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .tag-week {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 4px;
-    background: #e2e8f0;
-    color: #475569;
-    border-radius: 4px;
-    width: fit-content;
-    margin-top: 2px;
-  }
-  td.is-conflict .course-card {
-    border-color: #ef4444;
-    background: #fef2f2;
-    box-shadow: 0 0 0 1px #ef4444;
-  }
-  td.is-conflict .course-name { color: #dc2626; }
-  .conflict-badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 1px 4px;
-    background: #ef4444;
-    color: #fff;
-    border-radius: 4px;
-    margin-right: 4px;
-  }
-</style>
+@tab CSS
 
-<script>
-  const COURSES = [
-    { name: "高等数学", teacher: "张伟", room: "A101", day: 1, start: 1, span: 2, weeks: "all" },
-    { name: "线性代数", teacher: "李娜", room: "B203", day: 2, start: 3, span: 2, weeks: "all" },
-    { name: "大学英语", teacher: "王芳", room: "C305", day: 3, start: 1, span: 2, weeks: "all" },
-    { name: "数据结构", teacher: "刘强", room: "A204", day: 4, start: 3, span: 2, weeks: "all" },
-    { name: "操作系统", teacher: "陈静", room: "B102", day: 5, start: 1, span: 2, weeks: "odd" },
-    { name: "计算机网络", teacher: "赵磊", room: "C201", day: 5, start: 1, span: 2, weeks: "even" },
-    { name: "体育（羽毛球）", teacher: "孙鹏", room: "体育馆", day: 2, start: 5, span: 2, weeks: "all" },
-    { name: "编译原理", teacher: "周敏", room: "A305", day: 3, start: 1, span: 2, weeks: "all" }
-  ];
+```css
+:root {
+  --bg-page: #f8fafc;
+  --bg-card: #ffffff;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+  --primary: #2563eb;
+  --primary-bg: #eff6ff;
+  --primary-border: #bfdbfe;
+  --warn-bg: #fef2f2;
+  --warn-border: #fecaca;
+  --warn-text: #991b1b;
+}
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.week-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-page);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.week-bar button {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.week-bar button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.week-display {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.warning-bar {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 8px;
+  color: var(--warn-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+table.schedule {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: center;
+}
+table.schedule th, table.schedule td {
+  border: 1px solid var(--border);
+  padding: 8px 6px;
+  vertical-align: top;
+}
+table.schedule th {
+  background: var(--bg-page);
+  font-weight: 600;
+  font-size: 13px;
+}
+.col-period { width: 68px; }
+.period-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.course-card {
+  background: var(--primary-bg);
+  border: 1px solid var(--primary-border);
+  border-radius: 6px;
+  padding: 6px;
+  text-align: left;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.course-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1.3;
+}
+.course-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.tag-week {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 4px;
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 2px;
+}
+td.is-conflict .course-card {
+  border-color: #ef4444;
+  background: #fef2f2;
+  box-shadow: 0 0 0 1px #ef4444;
+}
+td.is-conflict .course-name { color: #dc2626; }
+.conflict-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 4px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+```
 
-  let currentWeek = 1;
+@tab JavaScript
 
-  function weeksIntersect(a, b) {
-    if (a === "all" || b === "all") return true;
-    return a === b;
+```js
+const COURSES = [
+  { name: "高等数学", teacher: "张伟", room: "A101", day: 1, start: 1, span: 2, weeks: "all" },
+  { name: "线性代数", teacher: "李娜", room: "B203", day: 2, start: 3, span: 2, weeks: "all" },
+  { name: "大学英语", teacher: "王芳", room: "C305", day: 3, start: 1, span: 2, weeks: "all" },
+  { name: "数据结构", teacher: "刘强", room: "A204", day: 4, start: 3, span: 2, weeks: "all" },
+  { name: "操作系统", teacher: "陈静", room: "B102", day: 5, start: 1, span: 2, weeks: "odd" },
+  { name: "计算机网络", teacher: "赵磊", room: "C201", day: 5, start: 1, span: 2, weeks: "even" },
+  { name: "体育（羽毛球）", teacher: "孙鹏", room: "体育馆", day: 2, start: 5, span: 2, weeks: "all" },
+  { name: "编译原理", teacher: "周敏", room: "A305", day: 3, start: 1, span: 2, weeks: "all" }
+];
+
+let currentWeek = 1;
+
+function weeksIntersect(a, b) {
+  if (a === "all" || b === "all") return true;
+  return a === b;
+}
+
+function periodsOverlap(startA, spanA, startB, spanB) {
+  const endA = startA + spanA - 1;
+  const endB = startB + spanB - 1;
+  return Math.max(startA, startB) <= Math.min(endA, endB);
+}
+
+function getConflictsThisWeek(week) {
+  const thisWeekCourses = COURSES.filter(c => {
+    if (c.weeks === "all") return true;
+    if (c.weeks === "odd") return week % 2 === 1;
+    if (c.weeks === "even") return week % 2 === 0;
+    return false;
+  });
+
+  const pairs = [];
+  for (let i = 0; i < thisWeekCourses.length; i++) {
+    for (let j = i + 1; j < thisWeekCourses.length; j++) {
+      const a = thisWeekCourses[i];
+      const b = thisWeekCourses[j];
+      if (a.day === b.day && periodsOverlap(a.start, a.span, b.start, b.span) && weeksIntersect(a.weeks, b.weeks)) {
+        pairs.push([a, b]);
+      }
+    }
   }
+  return { list: thisWeekCourses, pairs };
+}
 
-  function periodsOverlap(startA, spanA, startB, spanB) {
-    const endA = startA + spanA - 1;
-    const endB = startB + spanB - 1;
-    return Math.max(startA, startB) <= Math.min(endA, endB);
-  }
+function render() {
+  const prevBtn = document.getElementById("prevWeekBtn");
+  const nextBtn = document.getElementById("nextWeekBtn");
+  const weekDisplay = document.getElementById("weekDisplay");
+  const warningBar = document.getElementById("warningBar");
+  const gridBody = document.getElementById("gridBody");
 
-  function getConflictsThisWeek(week) {
-    const thisWeekCourses = COURSES.filter(c => {
-      if (c.weeks === "all") return true;
-      if (c.weeks === "odd") return week % 2 === 1;
-      if (c.weeks === "even") return week % 2 === 0;
-      return false;
+  prevBtn.disabled = currentWeek <= 1;
+  nextBtn.disabled = currentWeek >= 20;
+  const parity = currentWeek % 2 === 1 ? "单周" : "双周";
+  weekDisplay.textContent = `第 ${currentWeek} 周 / 共 20 周（${parity}）`;
+
+  const { list, pairs } = getConflictsThisWeek(currentWeek);
+
+  if (pairs.length > 0) {
+    warningBar.hidden = false;
+    const DAY_NAMES = ["周一", "周二", "周三", "周四", "周五"];
+    const messages = pairs.map(([a, b]) => {
+      const start = Math.min(a.start, b.start);
+      const end = Math.max(a.start + a.span - 1, b.start + b.span - 1);
+      return `${DAY_NAMES[a.day - 1]} 第${start}–${end}节：${a.name} 与 ${b.name}`;
     });
-
-    const pairs = [];
-    for (let i = 0; i < thisWeekCourses.length; i++) {
-      for (let j = i + 1; j < thisWeekCourses.length; j++) {
-        const a = thisWeekCourses[i];
-        const b = thisWeekCourses[j];
-        if (a.day === b.day && periodsOverlap(a.start, a.span, b.start, b.span) && weeksIntersect(a.weeks, b.weeks)) {
-          pairs.push([a, b]);
-        }
-      }
-    }
-    return { list: thisWeekCourses, pairs };
+    warningBar.textContent = `【课程冲突】` + messages.join("；");
+  } else {
+    warningBar.hidden = true;
+    warningBar.textContent = "";
   }
 
-  function render() {
-    const prevBtn = document.getElementById("prevWeekBtn");
-    const nextBtn = document.getElementById("nextWeekBtn");
-    const weekDisplay = document.getElementById("weekDisplay");
-    const warningBar = document.getElementById("warningBar");
-    const gridBody = document.getElementById("gridBody");
+  // Grid matrix [day 1..5][period 1..6]
+  const grid = Array.from({ length: 5 }, () => Array(6).fill(null));
+  const conflictCourseSet = new Set(pairs.flat());
 
-    prevBtn.disabled = currentWeek <= 1;
-    nextBtn.disabled = currentWeek >= 20;
-    const parity = currentWeek % 2 === 1 ? "单周" : "双周";
-    weekDisplay.textContent = `第 ${currentWeek} 周 / 共 20 周（${parity}）`;
-
-    const { list, pairs } = getConflictsThisWeek(currentWeek);
-
-    if (pairs.length > 0) {
-      warningBar.hidden = false;
-      const DAY_NAMES = ["周一", "周二", "周三", "周四", "周五"];
-      const messages = pairs.map(([a, b]) => {
-        const start = Math.min(a.start, b.start);
-        const end = Math.max(a.start + a.span - 1, b.start + b.span - 1);
-        return `${DAY_NAMES[a.day - 1]} 第${start}–${end}节：${a.name} 与 ${b.name}`;
-      });
-      warningBar.textContent = `【课程冲突】` + messages.join("；");
-    } else {
-      warningBar.hidden = true;
-      warningBar.textContent = "";
+  for (const course of list) {
+    const d = course.day - 1;
+    const s = course.start - 1;
+    if (grid[d][s] !== null) continue; // 先录入者占位，重叠者进警告栏
+    grid[d][s] = { course, span: course.span, isConflict: conflictCourseSet.has(course) };
+    for (let k = 1; k < course.span; k++) {
+      if (s + k < 6) grid[d][s + k] = "skip";
     }
-
-    // Grid matrix [day 1..5][period 1..6]
-    const grid = Array.from({ length: 5 }, () => Array(6).fill(null));
-    const conflictCourseSet = new Set(pairs.flat());
-
-    for (const course of list) {
-      const d = course.day - 1;
-      const s = course.start - 1;
-      if (grid[d][s] !== null) continue; // 先录入者占位，重叠者进警告栏
-      grid[d][s] = { course, span: course.span, isConflict: conflictCourseSet.has(course) };
-      for (let k = 1; k < course.span; k++) {
-        if (s + k < 6) grid[d][s + k] = "skip";
-      }
-    }
-
-    let tbodyHtml = "";
-    for (let p = 0; p < 6; p++) {
-      tbodyHtml += `<tr><th class="col-period period-label">第 ${p + 1} 节</th>`;
-      for (let d = 0; d < 5; d++) {
-        const cell = grid[d][p];
-        if (cell === "skip") continue;
-        if (cell) {
-          const c = cell.course;
-          const conflictClass = cell.isConflict ? " is-conflict" : "";
-          const badge = cell.isConflict ? `<span class="conflict-badge">冲突</span>` : "";
-          const weekTag = c.weeks === "all" ? "" : `<span class="tag-week">${c.weeks === "odd" ? "单周" : "双周"}</span>`;
-          tbodyHtml += `<td class="${conflictClass}" rowspan="${cell.span}">
-            <div class="course-card">
-              <div class="course-name">${badge}${c.name}</div>
-              <div class="course-meta">${c.teacher} · ${c.room}</div>
-              ${weekTag}
-            </div>
-          </td>`;
-        } else {
-          tbodyHtml += `<td></td>`;
-        }
-      }
-      tbodyHtml += `</tr>`;
-    }
-    gridBody.innerHTML = tbodyHtml;
   }
 
-  document.getElementById("prevWeekBtn").addEventListener("click", () => {
-    if (currentWeek > 1) { currentWeek--; render(); }
-  });
-  document.getElementById("nextWeekBtn").addEventListener("click", () => {
-    if (currentWeek < 20) { currentWeek++; render(); }
-  });
+  let tbodyHtml = "";
+  for (let p = 0; p < 6; p++) {
+    tbodyHtml += `<tr><th class="col-period period-label">第 ${p + 1} 节</th>`;
+    for (let d = 0; d < 5; d++) {
+      const cell = grid[d][p];
+      if (cell === "skip") continue;
+      if (cell) {
+        const c = cell.course;
+        const conflictClass = cell.isConflict ? " is-conflict" : "";
+        const badge = cell.isConflict ? `<span class="conflict-badge">冲突</span>` : "";
+        const weekTag = c.weeks === "all" ? "" : `<span class="tag-week">${c.weeks === "odd" ? "单周" : "双周"}</span>`;
+        tbodyHtml += `<td class="${conflictClass}" rowspan="${cell.span}">
+          <div class="course-card">
+            <div class="course-name">${badge}${c.name}</div>
+            <div class="course-meta">${c.teacher} · ${c.room}</div>
+            ${weekTag}
+          </div>
+        </td>`;
+      } else {
+        tbodyHtml += `<td></td>`;
+      }
+    }
+    tbodyHtml += `</tr>`;
+  }
+  gridBody.innerHTML = tbodyHtml;
+}
 
-  render();
-</script>
+document.getElementById("prevWeekBtn").addEventListener("click", () => {
+  if (currentWeek > 1) { currentWeek--; render(); }
+});
+document.getElementById("nextWeekBtn").addEventListener("click", () => {
+  if (currentWeek < 20) { currentWeek++; render(); }
+});
+
+render();
+```
+
+::::
 :::::
 
 ## 最终交付物与目录结构

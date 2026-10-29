@@ -9,7 +9,7 @@ createTime: 2026/10/28 09:52:27
 
 ## 先补充有效信息
 
-:::: flex between gap="20"
+:::: card-grid cols="2"
 
 <Card title="信息不足" icon="carbon:close-outline">
 
