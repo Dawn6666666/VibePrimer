@@ -18,7 +18,6 @@ config:
           text: 先看五步循环
           link: /loop/
           suffixIcon: carbon:arrow-right
-    effect: tint-plate
   - type: features
     features:
       - title: 从环境验收开始

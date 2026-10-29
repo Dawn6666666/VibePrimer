@@ -22,6 +22,7 @@
   --vp-c-note-soft: var(--vp-c-brand-soft);
 
   --vp-home-hero-name-color: var(--vp-c-brand-1);
+  --vp-bg-home-hero-name: var(--vp-c-brand-1);
 }
 
 [data-theme="dark"] {
@@ -42,6 +43,14 @@
   --vp-c-note-soft: var(--vp-c-brand-soft);
 
   --vp-home-hero-name-color: var(--vp-c-brand-1);
+  --vp-bg-home-hero-name: var(--vp-c-brand-1);
+}
+
+/* 5. 首页 Hero 标题消除杂色渐变，呈现纯净现代的 MD3 主题色 */
+.vp-home-hero .hero-name {
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  color: var(--vp-c-brand-1) !important;
 }
 
 /* 1. 中文段落的行距比拉丁文需要再松一点 */
