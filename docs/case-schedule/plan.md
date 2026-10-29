@@ -85,29 +85,29 @@ Agent 随后在根目录下生成了规范详尽的 [TODO.md](file:///home/yoake
 
 ## 计划锁定与 Git 提交
 
-审查无误后，Agent 直接在终端中执行提交：
+审查无误后，按照以下步骤让 Agent 直接在终端中执行提交：
 
-:::: tabs
+::: steps
+1. **向 Agent 发送提交指令**
+   命令 Agent 将规划好的三步清单打卡提交进仓库：
 
-@tab 用户指令
+   ```text title="计划锁定提示词"
+   生成完后，在终端执行 git 提交，提交信息为 "docs: 建立三步实施计划"。
+   ```
 
-```text title="计划锁定提示词"
-生成完后，在终端执行 git 提交，提交信息为 "docs: 建立三步实施计划"。
-```
+2. **Agent 自动执行入库**
+   Agent 调用终端工具提交 `TODO.md`，锁死计划基准：
 
-@tab Agent 工具执行
+   ```bash title="终端执行输出"
+   💻 [Bash]:
+   $ cd /home/yoake/Code/schedule && git add TODO.md && git commit -m "docs: 建立三步实施计划"
 
-```bash title="终端执行输出"
-💻 [Bash]:
-$ cd /home/yoake/Code/schedule && git add TODO.md && git commit -m "docs: 建立三步实施计划"
-
-📋 [Result]:
-[main 95dd8b9] docs: 建立三步实施计划
- 1 file changed, 90 insertions(+)
- create mode 100644 TODO.md
-```
-
-::::
+   📋 [Result]:
+   [main 95dd8b9] docs: 建立三步实施计划
+    1 file changed, 90 insertions(+)
+    create mode 100644 TODO.md
+   ```
+:::
 
 目前仓库已有两次清晰的 Git 提交（需求 + 计划），完全未触碰 `index.html` 代码。接下来进入第三步：按计划单任务推进。
 

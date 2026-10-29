@@ -35,32 +35,32 @@ const DURATION_SECONDS = 25 * 60;
 
 开发过程中产生的截图（如 `imgs/`）、临时测试文件，不应作为正式代码散落在工作区。
 
-让 Agent 创建 `.gitignore` 进行隔离：
+按照以下步骤让 Agent 创建 `.gitignore` 进行隔离与收尾提交：
 
-:::: tabs
+::: steps
+1. **向 Agent 发送收尾指令**
+   命令 Agent 创建配置并完成最后一次资产隔离打卡：
 
-@tab 用户指令
+   ```text title="收尾提示词"
+   全功能验收通过！跨天检测与容错降级逻辑非常完备。
+   请执行最后的收尾工作：
+   1. 在根目录下生成 .gitignore，忽略 imgs/ 目录，提交信息为 "chore: 忽略本地截图目录"。
+   2. 终端打印输出完整的 git log --oneline 提交历史，宣布项目正式完工！
+   ```
 
-```text title="收尾提示词"
-全功能验收通过！跨天检测与容错降级逻辑非常完备。
-请执行最后的收尾工作：
-1. 在根目录下生成 .gitignore，忽略 imgs/ 目录，提交信息为 "chore: 忽略本地截图目录"。
-2. 终端打印输出完整的 git log --oneline 提交历史，宣布项目正式完工！
-```
+2. **Agent 自动执行隔离并入库**
+   Agent 写入忽略规则并完成最后一次 Git 交付打卡：
 
-@tab Agent 执行日志
+   ```bash title="收尾提交日志"
+   💻 [Bash]:
+   $ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图目录"
 
-```bash title="收尾提交日志"
-💻 [Bash]:
-$ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图目录"
-
-📋 [Result]:
-[main dd0478a] chore: 忽略本地截图目录
- 1 file changed, 1 insertion(+)
- create mode 100644 .gitignore
-```
-
-::::
+   📋 [Result]:
+   [main dd0478a] chore: 忽略本地截图目录
+    1 file changed, 1 insertion(+)
+    create mode 100644 .gitignore
+   ```
+:::
 
 ## 回看完整的 Git 提交历史
 

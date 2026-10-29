@@ -84,30 +84,30 @@ Agent 随后在项目根目录生成了 [TODO.md](file:///home/yoake/Code/pomodo
 
 ## 锁定计划提交
 
-审查无误后，先将 `TODO.md` 提交入库，锁死这一步：
+审查无误后，按照以下步骤先将 `TODO.md` 提交入库，锁死这一步：
 
-:::: tabs
+::: steps
+1. **向 Agent 发送提交指令**
+   命令 Agent 将经过审查的实施计划提交进 Git：
 
-@tab 用户指令
+   ```text title="计划锁定提示词"
+   计划非常清晰。
+   请在终端执行提交：把 TODO.md 提交，提交信息为 "docs: 建立三步实施计划"。
+   ```
 
-```text title="计划锁定提示词"
-计划非常清晰。
-请在终端执行提交：把 TODO.md 提交，提交信息为 "docs: 建立三步实施计划"。
-```
+2. **Agent 调用终端工具执行入库**
+   Agent 自动调用终端工具提交 `TODO.md`：
 
-@tab Agent 执行日志
+   ```bash title="终端执行输出"
+   💻 [Bash]:
+   $ cd /home/yoake/Code/pomodoro && git add TODO.md && git commit -m "docs: 建立三步实施计划"
 
-```bash title="终端执行输出"
-💻 [Bash]:
-$ cd /home/yoake/Code/pomodoro && git add TODO.md && git commit -m "docs: 建立三步实施计划"
-
-📋 [Result]:
-[main 74b2ef9] docs: 建立三步实施计划
- 1 file changed, 38 insertions(+)
- create mode 100644 TODO.md
-```
-
-::::
+   📋 [Result]:
+   [main 74b2ef9] docs: 建立三步实施计划
+    1 file changed, 38 insertions(+)
+    create mode 100644 TODO.md
+   ```
+:::
 
 目前仓库已有两次清晰的 Git 提交（需求 + 计划），代码一行未写，但地基坚不可摧。
 

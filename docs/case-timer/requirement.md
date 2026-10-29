@@ -129,30 +129,30 @@ stateDiagram-v2
 
 ## 立即执行根提交（打下确定基线）
 
-需求卡落盘后，不要急着写代码！让 Agent 在终端里直接执行 Git 提交，锁死这份共识：
+需求卡落盘后，不要急着写代码！按照以下流程让 Agent 在终端里直接执行 Git 提交，锁死这份共识：
 
-:::: tabs
+::: steps
+1. **向 Agent 发送提交指令**
+   明确告诉 Agent 需求已锁定，要求直接在终端中执行 Git 暂存与提交：
 
-@tab 用户指令
+   ```text title="提交提示词"
+   这份 REQUIREMENT.md 很好。
+   请调用终端命令，把 REQUIREMENT.md 暂存并提交，提交信息为 "docs: 建立番茄钟最简需求卡"。
+   ```
 
-```text title="提交提示词"
-这份 REQUIREMENT.md 很好。
-请调用终端命令，把 REQUIREMENT.md 暂存并提交，提交信息为 "docs: 建立番茄钟最简需求卡"。
-```
+2. **Agent 自动调用终端工具入库**
+   Agent 识别意图后，自动调用内置 Bash 工具执行命令，打下项目的第 1 个根提交：
 
-@tab Agent 工具调用
+   ```bash title="终端执行输出"
+   💻 [Bash]:
+   $ cd /home/yoake/Code/pomodoro && git add REQUIREMENT.md && git commit -m "docs: 建立番茄钟最简需求卡"
 
-```bash title="终端执行输出"
-💻 [Bash]:
-$ cd /home/yoake/Code/pomodoro && git add REQUIREMENT.md && git commit -m "docs: 建立番茄钟最简需求卡"
-
-📋 [Result]:
-[main（根提交） e629d7c] docs: 建立番茄钟最简需求卡
- 1 file changed, 43 insertions(+)
- create mode 100644 REQUIREMENT.md
-```
-
-::::
+   📋 [Result]:
+   [main（根提交） e629d7c] docs: 建立番茄钟最简需求卡
+    1 file changed, 43 insertions(+)
+    create mode 100644 REQUIREMENT.md
+   ```
+:::
 
 ::: tip 为什么需求也要进 Git
 需求卡是后续所有代码 diff 的唯一法理裁判。如果需求随口变动而不落盘提交，后续出现 bug 时你就无法分清是「Agent 写错了」还是「你记错了需求」。进仓库就是签合同。
