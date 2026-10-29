@@ -54,7 +54,7 @@ git config --global user.email "你的邮箱"
 flowchart LR
   A["工作区<br/>你眼前的文件"] -->|git add| B["暂存区<br/>准备提交的改动"]
   B -->|git commit| C["仓库<br/>提交历史中的快照"]
-  B -->|git restore（默认）| A
+  B -->|git restore| A
 ```
 
 - **工作区**：你正在编辑的文件
