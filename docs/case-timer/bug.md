@@ -114,6 +114,4 @@ $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完
  1 file changed, 49 insertions(+), 1 deletion(-)
 ```
 
-代码已全部就绪。最后一步进行全量验收与工程清理。
-
-[下一步：检查并交付](/case-timer/finish/){.read-more}
+代码已全部就绪。点击下方「下一页」，进入最后一步的全量验收与工程清理。

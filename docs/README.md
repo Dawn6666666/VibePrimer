@@ -1,5 +1,6 @@
 ---
 pageLayout: home
+footer: false
 config:
   - type: hero
     full: true

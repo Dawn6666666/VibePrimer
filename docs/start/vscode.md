@@ -222,5 +222,5 @@ AI 编程插件先只启用一个，避免多个工具同时补全或弹出面�
 如果 `code .` 提示找不到命令，Windows 可重新运行安装包并勾选 PATH，macOS 可再次执行 Install 'code' command in PATH。修改 PATH 后要重开终端。
 
 :::: tip 下一步
-编辑器可以用了，接着 [安装 Git](/start/git/)，给后面的修改留下可恢复的版本。
+编辑器可以用了，接着选一个编程 Agent，让它配合 VS Code 读写项目文件。点击下方「下一页」直接继续。
 ::::

@@ -149,6 +149,4 @@ $ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 实
 e629d7c docs: 建立番茄钟最简需求卡
 ```
 
-每个提交都对应一个明确的阶段。接下来处理任务三：本地持久化、跨天重置与边界异常防护。
-
-[下一步：盯差量与修边界（任务三）](/case-timer/bug/){.read-more}
+每个提交都对应一个明确的阶段。接下来点击下方「下一页」，处理任务三的本地持久化、跨天重置与边界异常防护。

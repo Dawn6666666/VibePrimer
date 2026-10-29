@@ -432,6 +432,4 @@ code .
 
 ![VS Code 打开 pomodoro 目录并就绪 Pi Agent](/images/case-timer/vscode-pi-ready.png)
 
-准备就绪后，直接进入第一步：
-
-[下一步：写需求卡](/case-timer/requirement/){.read-more}
+环境准备就绪后，点击下方「下一页」开始编写需求卡。

@@ -192,6 +192,4 @@ name(string), teacher(string), room(string), day(1..5), start(1..6), span(1..4),
    ```
 :::
 
-需求文档已提交，下一步进入制定计划阶段：
-
-[下一步：让 Agent 先交方案](/case-schedule/plan/){.read-more}
+需求文档已提交，下一步进入制定计划阶段。点击下方「下一页」让 Agent 先交方案。

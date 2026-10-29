@@ -118,6 +118,4 @@ $ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实
  1 file changed, 230 insertions(+), 43 deletions(-)
 ```
 
-至此核心功能已全部实现。最后一步进行全量验收与工程清理。
-
-[下一步：检查并交付](/case-schedule/ship/){.read-more}
+至此核心功能已全部实现。点击下方「下一页」，进入最后一步的全量验收与工程清理。

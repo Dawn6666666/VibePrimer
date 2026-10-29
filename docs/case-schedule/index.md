@@ -519,6 +519,4 @@ tmux new-session -s schedule -c ~/Code/schedule
 pi
 ```
 
-环境就绪后，直接进入第一步：
-
-[下一步：先定数据](/case-schedule/requirement/){.read-more}
+环境准备就绪后，点击下方「下一页」开始梳理并确定数据结构与需求卡。

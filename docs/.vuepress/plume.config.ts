@@ -10,12 +10,9 @@ export default defineThemeConfig({
 
   collections,
 
-  // 文档站不需要个人主页区域
+  // 文档站不需要个人主页区域与额外底栏
   profile: false,
-
-  footer: {
-    copyright: '写给大一下的 Vibe Coding 入门指南 · 用 vuepress-theme-plume 搭的',
-  },
+  footer: false,
 
   editLink: false,
   contributors: false,
