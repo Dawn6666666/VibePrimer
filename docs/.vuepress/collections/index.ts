@@ -57,6 +57,20 @@ const caseSchedule = defineCollection({
   ],
 })
 
+const caseBookhub = defineCollection({
+  type: 'doc',
+  dir: 'case-bookhub',
+  title: '案例三',
+  linkPrefix: '/case-bookhub/',
+  sidebar: [
+    {
+      text: '第 4 章 · 案例三：图书管理系统',
+      icon: 'carbon:book',
+      items: ['index'],
+    },
+  ],
+})
+
 const craft = defineCollection({
   type: 'doc',
   dir: 'craft',
@@ -64,7 +78,7 @@ const craft = defineCollection({
   linkPrefix: '/craft/',
   sidebar: [
     {
-      text: '第 4 章 · 核心技能',
+      text: '第 5 章 · 核心技能',
       icon: 'carbon:tool-box',
       items: ['prompt', 'context', 'read', 'test', 'safety'],
     },
@@ -92,7 +106,7 @@ const pitfalls = defineCollection({
   linkPrefix: '/pitfalls/',
   sidebar: [
     {
-      text: '第 5 章 · 二十个坑',
+      text: '第 6 章 · 二十个坑',
       icon: 'carbon:warning-alt',
       items: ['index'],
     },
@@ -118,6 +132,7 @@ export const collections: ThemeCollections = defineCollections([
   loop,
   caseTimer,
   caseSchedule,
+  caseBookhub,
   craft,
   pitfalls,
   after,

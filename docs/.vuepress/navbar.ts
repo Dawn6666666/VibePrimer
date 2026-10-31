@@ -20,6 +20,7 @@ export const navbar: ThemeNavItem[] = defineNavbarConfig([
     items: [
       { text: '案例一 · 番茄钟', link: '/case-timer/', icon: 'carbon:timer' },
       { text: '案例二 · 课程表', link: '/case-schedule/', icon: 'carbon:calendar-heat-map' },
+      { text: '案例三 · 图书管理系统', link: '/case-bookhub/', icon: 'carbon:book' },
     ],
   },
   {
