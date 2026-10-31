@@ -15,7 +15,9 @@ createTime: 2026/10/28 09:50:47
 
 ## 下载和安装
 
-打开 [code.visualstudio.com](https://code.visualstudio.com/)，下载适合你系统的安装包。不要从来源不明的软件站下载。下面只看自己使用的系统即可。
+打开 [code.visualstudio.com/download](https://code.visualstudio.com/download)，下载适合你系统的安装包。不要从来源不明的软件站下载。下面只看自己使用的系统即可。
+
+![VS Code 官网下载页面](/images/start/vscode-download.png)
 
 :::::: tabs
 
@@ -124,38 +126,9 @@ brew install --cask visual-studio-code
 
 按 `Ctrl+Shift+X`（macOS 是 `Cmd+Shift+X`）打开扩展面板，搜索 `Chinese (Simplified)`，认准发布者 Microsoft，点 Install，然后重启。
 
+![在扩展面板中搜索并安装中文语言包](/images/start/vscode-chinese-ext.png)
+
 版本会不断更新，只要仍受官方支持，就不必为了教程追某一个版本号。
-
-## 装完后建议调整的设置
-
-按 `Ctrl+,` 打开设置，再点右上角的「打开设置 (JSON)」。如果文件里已有内容，不要整份覆盖；把需要的字段合并进去，并注意字段之间的逗号。
-
-```json title="settings.json" {2-3}
-{
-  "files.autoSave": "onFocusChange",
-  "editor.formatOnSave": true,
-  "editor.fontSize": 15,
-  "editor.minimap.enabled": false,
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/.git": true
-  }
-}
-```
-
-| 设置 | 用途 |
-| --- | --- |
-| `autoSave: onFocusChange` | 编辑器失去焦点时保存，减少忘记保存导致的运行结果不一致 |
-| `formatOnSave: true` | 保存时调用当前语言可用的格式化器，让代码格式和 diff 更整齐 |
-| `fontSize: 15` | 设置编辑器字号，可以按自己的需要调整 |
-| `minimap: false` | 收起右侧代码缩略图，给小屏幕留出空间 |
-| `files.exclude` | 在文件树里隐藏依赖目录和 Git 内部文件，文件本身不会被删除 |
-
-如果保存时提示“没有格式化器”，再为正在使用的语言安装一个格式化扩展即可。`formatOnSave` 只是触发开关，本身不提供所有语言的格式化能力。
-
-:::: tip 项目路径尽量简单
-VS Code、Node.js 等现代工具通常支持中文和空格路径，但少数旧脚本或插件可能处理不好。初学项目可以优先使用 `C:\dev\vibe-lab`、`D:\code\timer` 或 `~/dev/vibe-lab` 这样的简单路径，减少一类兼容性问题。
-::::
 
 ## 用「打开文件夹」打开项目
 
@@ -176,6 +149,10 @@ VS Code、Node.js 等现代工具通常支持中文和空格路径，但少数�
 
 这里打开的是 `pomodoro`，不是它上层的练习目录，也不是单独打开 `index.html`。
 
+::: tip 项目路径尽量简单
+VS Code、Node.js 等现代工具通常支持中文和空格路径，但少数旧脚本或插件可能处理不好。初学项目可以优先使用 `C:\dev\vibe-lab`、`D:\code\timer` 或 `~/dev/vibe-lab` 这样的简单路径，减少一类兼容性问题。
+:::
+
 ## 常用的四个区域
 
 | 区域 | 怎么打开 | 用来干什么 |
@@ -184,6 +161,8 @@ VS Code、Node.js 等现代工具通常支持中文和空格路径，但少数�
 | 编辑器 | 点文件 | 阅读和小范围修改代码 |
 | 终端 | `` Ctrl+` `` | 启动项目、安装依赖、使用 Git 和 Agent |
 | 源代码管理 | `Ctrl+Shift+G` | 查看 diff、暂存和提交 |
+
+![VS Code 常用四个区域全景工作界面](/images/start/vscode-four-areas.png)
 
 代码不必全部手敲，但你要能在编辑器里改一个按钮文字、修正一个变量名，再重新运行验证。终端也很重要，安装依赖和启动项目都会用到它。
 
