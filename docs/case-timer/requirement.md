@@ -131,30 +131,20 @@ localStorage 仅存今日完成数（含日期），跨天自动归零；刷新�
 我们用状态机把整个番茄钟抽象为 4 种互斥的确定状态。任何时刻，页面只能处于其中一种状态，显示什么时间、按钮显示什么字，完全由当前状态决定：
 
 ```mermaid
-flowchart TD
-    Start(["网页打开 / 刷新"]):::init --> IDLE
+stateDiagram-v2
+    state "未开始 (idle)" as idle
+    state "倒计时中 (running)" as running
+    state "已暂停 (paused)" as paused
+    state "已结束 (finished)" as finished
 
-    subgraph 状态流转 ["番茄钟 4 态流转图"]
-        IDLE["<b>未开始 (idle)</b><br/>• 屏幕：25:00<br/>• 按钮：『开始』<br/>• 重置：可用"]:::idleState
-        RUNNING["<b>倒计时中 (running)</b><br/>• 屏幕：每秒减 1<br/>• 按钮：『暂停』<br/>• 重置：可用"]:::runState
-        PAUSED["<b>已暂停 (paused)</b><br/>• 屏幕：数字停住<br/>• 按钮：『继续』<br/>• 重置：可用"]:::pauseState
-        FINISHED["<b>已结束 (finished)</b><br/>• 屏幕：00:00<br/>• 按钮：禁用<br/>• 标题：『休息一下』<br/>• 今日次数：+1"]:::finishState
-    end
-
-    IDLE -->|"点击【开始】"| RUNNING
-    RUNNING -->|"点击【暂停】"| PAUSED
-    PAUSED -->|"点击【继续】"| RUNNING
-    RUNNING -->|"自然倒计时归零"| FINISHED
-
-    RUNNING -->|"点击【重置】"| IDLE
-    PAUSED -->|"点击【重置】"| IDLE
-    FINISHED -->|"点击【重置】"| IDLE
-
-    classDef init fill:#f3f4f6,stroke:#9ca3af,stroke-width:1px,color:#374151;
-    classDef idleState fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af;
-    classDef runState fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#065f46;
-    classDef pauseState fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#92400e;
-    classDef finishState fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#991b1b;
+    [*] --> idle: 页面载入
+    idle --> running: 点击开始
+    running --> paused: 点击暂停
+    paused --> running: 点击继续
+    running --> finished: 倒计时归零
+    running --> idle: 点击重置
+    paused --> idle: 点击重置
+    finished --> idle: 点击重置
 ```
 
 ### 四态速查表
