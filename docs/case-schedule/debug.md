@@ -107,15 +107,21 @@ function saveWeek(week) {
 
 ## 提交任务三
 
-测试验证通过后，在终端中提交任务三代码：
+测试验证通过后，让 Agent 在终端中提交任务三代码：
 
-```bash title="任务三提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现冲突检测与周次持久化"
+:::: chat title="与 Agent 对话：提交任务三代码"
 
-📋 [Result]:
+{.}
+冲突检测与周次持久化测试全部通过。请提交本次代码，提交信息为 "feat: 实现冲突检测与周次持久化"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 实现冲突检测与周次持久化"
 [main 743e2ff] feat: 实现冲突检测与周次持久化
  1 file changed, 230 insertions(+), 43 deletions(-)
 ```
+::::
 
 至此核心功能已全部实现。点击下方「下一页」，进入最后一步的全量验收与工程清理。

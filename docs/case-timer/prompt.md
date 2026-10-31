@@ -121,29 +121,25 @@ Agent 随后在项目根目录生成了 [TODO.md](file:///home/yoake/Code/pomodo
 
 ## 第二次提交：保存实施计划
 
-确认计划合理后，让 Agent 将 `TODO.md` 提交到 Git：
+确认计划合理后，让 Agent 在终端中执行 Git 提交保存实施计划：
 
-::: steps
-1. **向 Agent 发送提交指令**
-   让 Agent 在终端中执行提交：
+:::: chat title="与 Agent 对话：保存实施计划"
 
-   ```text title="计划锁定提示词"
-   计划很清晰。
-   请在终端执行提交：把 TODO.md 提交，提交信息为 "docs: 建立三步实施计划"。
-   ```
+{.}
+计划很清晰。
+请在终端执行提交：把 TODO.md 提交，提交信息为 "docs: 建立三步实施计划"。
 
-2. **Agent 调用终端执行提交**
-   Agent 在终端中执行命令完成提交：
+{Agent}
+已调用终端命令完成提交：
 
-   ```bash title="终端执行输出"
-   💻 [Bash]:
-   $ cd /home/yoake/Code/pomodoro && git add TODO.md && git commit -m "docs: 建立三步实施计划"
+```bash
+$ git add TODO.md && git commit -m "docs: 建立三步实施计划"
+[main 74b2ef9] docs: 建立三步实施计划
+ 1 file changed, 38 insertions(+)
+ create mode 100644 TODO.md
+```
 
-   📋 [Result]:
-   [main 74b2ef9] docs: 建立三步实施计划
-    1 file changed, 38 insertions(+)
-    create mode 100644 TODO.md
-   ```
-:::
+当前仓库中已有需求卡和实施计划两次提交（`74b2ef9`）。
+::::
 
 此时仓库中已有需求文档和任务清单两次提交，目标和步骤明确后，点击下方「下一页」开始生成并运行任务一与任务二的代码。

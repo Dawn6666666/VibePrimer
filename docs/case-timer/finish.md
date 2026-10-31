@@ -35,31 +35,25 @@ const DURATION_SECONDS = 25 * 60;
 
 开发过程中产生的截图（如 `imgs/`）、临时测试文件，不应作为正式代码散落在工作区。
 
-按照以下步骤让 Agent 创建 `.gitignore` 并提交：
+让 Agent 创建配置并完成收尾提交：
 
-::: steps
-1. **向 Agent 发送收尾指令**
-   让 Agent 创建配置并完成收尾提交：
+:::: chat title="与 Agent 对话：收尾提交并检视提交历史"
 
-   ```text title="收尾提示词"
-   验收通过。请执行收尾工作：
-   1. 在根目录下生成 .gitignore，忽略 imgs/ 目录，提交信息为 "chore: 忽略本地截图目录"。
-   2. 打印完整的 git log --oneline 提交历史。
-   ```
+{.}
+验收通过。请执行收尾工作：
+1. 在根目录下生成 .gitignore，忽略 imgs/ 目录，提交信息为 "chore: 忽略本地截图目录"。
+2. 打印完整的 git log --oneline 提交历史。
 
-2. **Agent 执行提交**
-   Agent 写入忽略规则并完成提交：
+{Agent}
+已调用终端命令完成收尾提交：
 
-   ```bash title="收尾提交日志"
-   💻 [Bash]:
-   $ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图目录"
-
-   📋 [Result]:
-   [main dd0478a] chore: 忽略本地截图目录
-    1 file changed, 1 insertion(+)
-    create mode 100644 .gitignore
-   ```
-:::
+```bash
+$ echo "imgs/" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图目录"
+[main dd0478a] chore: 忽略本地截图目录
+ 1 file changed, 1 insertion(+)
+ create mode 100644 .gitignore
+```
+::::
 
 ## 回看完整的 Git 提交历史
 

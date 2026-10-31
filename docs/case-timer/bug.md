@@ -103,15 +103,21 @@ function saveCount() {
 
 ## 提交任务三
 
-测试验证通过后，提交任务三代码：
+测试验证通过后，让 Agent 在终端中提交任务三代码：
 
-```bash title="任务三提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完成今日完成数持久化与跨天重置"
+:::: chat title="与 Agent 对话：提交任务三代码"
 
-📋 [Result]:
+{.}
+异常测试与跨天重置验证全部通过。请提交本次代码，提交信息为 "feat: 完成今日完成数持久化与跨天重置"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 完成今日完成数持久化与跨天重置"
 [main 182358b] feat: 完成今日完成数持久化与跨天重置
  1 file changed, 49 insertions(+), 1 deletion(-)
 ```
+::::
 
 代码已全部就绪。点击下方「下一页」，进入最后一步的全量验收与工程清理。

@@ -47,17 +47,23 @@ start index.html      # Windows
 
 ### 4. 提交任务一
 
-验收通过后，让 Agent 提交任务一代码：
+验收通过后，让 Agent 在终端中执行 Git 提交保存当前代码：
 
-```bash title="任务一提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 完成骨架搭建与静态样式"
+:::: chat title="与 Agent 对话：提交任务一代码"
 
-📋 [Result]:
+{.}
+静态页面与样式验收通过。请将 index.html 提交入库，提交信息为 "feat: 完成骨架搭建与静态样式"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 完成骨架搭建与静态样式"
 [main 17db13e] feat: 完成骨架搭建与静态样式
  1 file changed, 102 insertions(+)
  create mode 100644 index.html
 ```
+::::
 
 ---
 
@@ -125,16 +131,22 @@ const DURATION_SECONDS = 25 * 60;
 
 ### 4. 提交任务二
 
-在浏览器中验证无误后，提交任务二代码：
+在浏览器中验证无误后，让 Agent 在终端中提交任务二代码：
 
-```bash title="任务二提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/pomodoro && git add index.html && git commit -m "feat: 实现核心倒计时与四态状态流转"
+:::: chat title="与 Agent 对话：提交任务二代码"
 
-📋 [Result]:
+{.}
+四态状态机和防加速逻辑验证通过。请提交本次代码，提交信息为 "feat: 实现核心倒计时与四态状态流转"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 实现核心倒计时与四态状态流转"
 [main 6764dc2] feat: 实现核心倒计时与四态状态流转
  1 file changed, 113 insertions(+), 3 deletions(-)
 ```
+::::
 
 ---
 

@@ -40,17 +40,23 @@ Agent 生成了极简的单文件 `index.html`（251 行）。我们审查代码
 
 ### 4. 提交任务一
 
-验收通过后，在终端执行 Git 提交：
+验收通过后，让 Agent 在终端中执行 Git 提交保存当前代码：
 
-```bash title="任务一提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 完成课表骨架搭建与基础网格"
+:::: chat title="与 Agent 对话：提交任务一代码"
 
-📋 [Result]:
+{.}
+任务一验收通过，空网格与响应式均符合要求。请将 index.html 提交入库，提交信息为 "feat: 完成课表骨架搭建与基础网格"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 完成课表骨架搭建与基础网格"
 [main 7446120] feat: 完成课表骨架搭建与基础网格
  1 file changed, 251 insertions(+)
  create mode 100644 index.html
 ```
+::::
 
 ---
 
@@ -133,14 +139,22 @@ for (let p = 0; p < 6; p++) {
 
 ### 4. 提交任务二
 
-```bash title="任务二提交日志"
-💻 [Bash]:
-$ cd /home/yoake/Code/schedule && git add index.html && git commit -m "feat: 实现课程数据渲染与跨节合并"
+在浏览器中验证无误后，让 Agent 在终端中提交任务二代码：
 
-📋 [Result]:
+:::: chat title="与 Agent 对话：提交任务二代码"
+
+{.}
+单双周切换与跨节合并测试全部通过。请提交本次代码，提交信息为 "feat: 实现课程数据渲染与跨节合并"。
+
+{Agent}
+已调用终端命令完成提交：
+
+```bash
+$ git add index.html && git commit -m "feat: 实现课程数据渲染与跨节合并"
 [main a31b0fc] feat: 实现课程数据渲染与跨节合并
  1 file changed, 153 insertions(+), 54 deletions(-)
 ```
+::::
 
 ---
 

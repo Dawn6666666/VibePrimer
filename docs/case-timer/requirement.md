@@ -142,30 +142,26 @@ stateDiagram-v2
 
 ## 首次提交：保存需求文档
 
-需求确认无误后，让 Agent 在终端中将 `REQUIREMENT.md` 提交到 Git：
+需求确认无误后，让 Agent 在终端中执行 Git 提交保存需求文档：
 
-::: steps
-1. **向 Agent 发送提交指令**
-   让 Agent 在终端中执行 Git 暂存与提交：
+:::: chat title="与 Agent 对话：首次提交保存需求文档"
 
-   ```text title="提交提示词"
-   这份 REQUIREMENT.md 很好。
-   请调用终端命令，把 REQUIREMENT.md 暂存并提交，提交信息为 "docs: 建立番茄钟最简需求卡"。
-   ```
+{.}
+这份 REQUIREMENT.md 很好。
+请调用终端命令，把 REQUIREMENT.md 暂存并提交，提交信息为 "docs: 建立番茄钟最简需求卡"。
 
-2. **Agent 调用终端执行提交**
-   Agent 收到指令后，在终端中执行命令完成首次提交：
+{Agent}
+已调用终端命令完成首次提交：
 
-   ```bash title="终端执行输出"
-   💻 [Bash]:
-   $ cd /home/yoake/Code/pomodoro && git add REQUIREMENT.md && git commit -m "docs: 建立番茄钟最简需求卡"
+```bash
+$ git add REQUIREMENT.md && git commit -m "docs: 建立番茄钟最简需求卡"
+[main（根提交） e629d7c] docs: 建立番茄钟最简需求卡
+ 1 file changed, 43 insertions(+)
+ create mode 100644 REQUIREMENT.md
+```
 
-   📋 [Result]:
-   [main（根提交） e629d7c] docs: 建立番茄钟最简需求卡
-    1 file changed, 43 insertions(+)
-    create mode 100644 REQUIREMENT.md
-   ```
-:::
+当前仓库历史中已建立第 1 个提交节点（`e629d7c`）。
+::::
 
 ::: tip 为什么需求也要进 Git
 将需求文档作为独立提交保存，便于后续回顾和版本追溯，在修改代码或出现分歧时也有明确的对照依据。

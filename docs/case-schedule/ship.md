@@ -29,29 +29,23 @@ createTime: 2026/10/28 10:34:00
 
 在测试与交互过程中，浏览器或工具可能会在项目目录下产生快照截图（如 `task1-preview.png`、`task3-final.png`）。这些资产属于过程产物，不应混入代码版本库中。
 
-按照以下步骤让 Agent 创建 `.gitignore` 并提交：
+让 Agent 创建配置并完成收尾提交：
 
-::: steps
-1. **向 Agent 发送收尾指令**
-   让 Agent 创建配置忽略截图文件：
+:::: chat title="与 Agent 对话：收尾提交并忽略本地截图"
 
-   ```text title="收尾提示词"
-   在根目录下生成 .gitignore，写入 "*.png" 规则以忽略本地测试截图，提交信息为 "chore: 忽略本地截图"。
-   ```
+{.}
+在根目录下生成 .gitignore，写入 "*.png" 规则以忽略本地测试截图，提交信息为 "chore: 忽略本地截图"。
 
-2. **Agent 执行提交**
-   Agent 写入规则并完成最后一次提交：
+{Agent}
+已调用终端命令完成收尾提交：
 
-   ```bash title="收尾提交日志"
-   💻 [Bash]:
-   $ echo "*.png" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图"
-
-   📋 [Result]:
-   [main 40b0213] chore: 忽略本地截图
-    1 file changed, 1 insertion(+)
-    create mode 100644 .gitignore
-   ```
-:::
+```bash
+$ echo "*.png" > .gitignore && git add .gitignore && git commit -m "chore: 忽略本地截图"
+[main 40b0213] chore: 忽略本地截图
+ 1 file changed, 1 insertion(+)
+ create mode 100644 .gitignore
+```
+::::
 
 ## 完整的 Git 提交历史
 

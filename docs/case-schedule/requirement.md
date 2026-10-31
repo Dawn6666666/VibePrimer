@@ -200,28 +200,24 @@ name(string), teacher(string), room(string), day(1..5), start(1..6), span(1..4),
 
 ## 首次提交：保存需求文档
 
-需求确认无误后，让 Agent 在终端中将 `REQUIREMENT.md` 提交到 Git：
+需求确认无误后，让 Agent 在终端中执行 Git 提交保存当前版本：
 
-::: steps
-1. **向 Agent 发送提交指令**
-   让 Agent 调用终端执行 Git 暂存与提交：
+:::: chat title="与 Agent 对话：首次提交保存需求文档"
 
-   ```text title="提交提示词"
-   请调用终端命令，将 REQUIREMENT.md 提交入库，提交信息为 "docs: 建立课程表最简需求卡"。
-   ```
+{.}
+请调用终端命令，将 REQUIREMENT.md 提交入库，提交信息为 "docs: 建立课程表最简需求卡"。
 
-2. **Agent 调用终端执行提交**
-   Agent 在终端中执行命令完成首次提交：
+{Agent}
+已调用终端命令完成提交：
 
-   ```bash title="终端执行输出"
-   💻 [Bash]:
-   $ cd /home/yoake/Code/schedule && git add REQUIREMENT.md && git commit -m "docs: 建立课程表最简需求卡"
+```bash
+$ git add REQUIREMENT.md && git commit -m "docs: 建立课程表最简需求卡"
+[main（根提交） 9240319] docs: 建立课程表最简需求卡
+ 1 file changed, 93 insertions(+)
+ create mode 100644 REQUIREMENT.md
+```
 
-   📋 [Result]:
-   [main（根提交） 9240319] docs: 建立课程表最简需求卡
-    1 file changed, 93 insertions(+)
-    create mode 100644 REQUIREMENT.md
-   ```
-:::
+当前仓库历史中已建立第 1 个提交节点（`9240319`）。
+::::
 
 需求文档已提交，下一步进入制定计划阶段。点击下方「下一页」让 Agent 先交方案。

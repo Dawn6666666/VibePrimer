@@ -136,28 +136,24 @@ Agent 随后在根目录下生成了规范详尽的 [TODO.md](file:///home/yoake
 
 ## 第二次提交：保存实施计划
 
-确认计划合理后，让 Agent 在终端中执行提交：
+确认计划合理后，让 Agent 在终端中执行 Git 提交保存实施计划：
 
-::: steps
-1. **向 Agent 发送提交指令**
-   让 Agent 将 `TODO.md` 提交到 Git：
+:::: chat title="与 Agent 对话：保存实施计划"
 
-   ```text title="计划锁定提示词"
-   生成完后，在终端执行 git 提交，提交信息为 "docs: 建立三步实施计划"。
-   ```
+{.}
+生成完后，在终端执行 git 提交，提交信息为 "docs: 建立三步实施计划"。
 
-2. **Agent 调用终端执行提交**
-   Agent 在终端中执行命令完成提交：
+{Agent}
+已调用终端命令完成提交：
 
-   ```bash title="终端执行输出"
-   💻 [Bash]:
-   $ cd /home/yoake/Code/schedule && git add TODO.md && git commit -m "docs: 建立三步实施计划"
+```bash
+$ git add TODO.md && git commit -m "docs: 建立三步实施计划"
+[main 95dd8b9] docs: 建立三步实施计划
+ 1 file changed, 90 insertions(+)
+ create mode 100644 TODO.md
+```
 
-   📋 [Result]:
-   [main 95dd8b9] docs: 建立三步实施计划
-    1 file changed, 90 insertions(+)
-    create mode 100644 TODO.md
-   ```
-:::
+当前仓库中已有需求卡和实施计划两次提交（`95dd8b9`）。
+::::
 
 此时仓库中已有需求文档和实施计划两次提交。确认无误后，点击下方「下一页」开始生成并运行任务一与任务二的代码。
