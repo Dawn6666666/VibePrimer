@@ -220,197 +220,106 @@ render();
 ::::
 :::::
 
-## 最终交付物与目录结构
+## 与 Agent 的对话过程
 
-整个案例最终交付 3 个核心文件与 1 个忽略规则，纯前端原生实现，无 node_modules、无构建打包，任意浏览器双击直接运行：
+这个案例不需要我们自己手写代码。我们通过 5 轮对话把需求交代给 Agent，并在关键节点完成了 6 次 Git 提交。
 
-:::: file-tree
-- pomodoro/
-  - index.html # 单文件全部实现（HTML + 内联 CSS + 原生 JS）
-  - REQUIREMENT.md # 第一步：Agent 访谈收敛出的最简需求卡
-  - TODO.md # 第二步：拆分的三步实施计划与手动验收方案
-  - .gitignore # 收尾：忽略本地开发截图与临时目录
-::::
-
-## 全流程 Git 提交历史
-
-每次需求变更、计划确定或单任务交付，都对应一次清晰的 Git 提交。以下是项目开发的完整提交历史：
+下面按顺序列出当时的对话截图、怎么向 Agent 提要求，以及每次生成的文件变化：
 
 ::::: timeline
-- 保存需求 · `e629d7c` docs: 建立番茄钟最简需求卡
+- 步骤一 · 保存需求卡 · `e629d7c` docs: 建立番茄钟最简需求卡
   time="2026-10-28"
 
-  - 通过结构化需求访谈，锁定 25 分钟倒计时与单文件交付
-  - 明确拒绝音频、图表与复杂设置，确立三条验收基准
-
-  :::: details 展开查看代码 Diff 与文件结构
+  - **怎么跟它说**：先告诉它想做个番茄钟，但明确说明“先不要写代码，先针对这个功能向我提问”，通过来回问答把功能边界梳理清楚。
+  - **确认的要点**：固定 25 分钟倒计时，不做音频和复杂设置，只做单个 HTML 文件。
+  - **当前项目文件**：
   ::: file-tree
   - pomodoro/
-    - REQUIREMENT.md # 需求文档（新增）
+    - REQUIREMENT.md # 本轮生成：最简需求卡
   :::
 
-  ```markdown title="REQUIREMENT.md 核心要点"
-  # 番茄钟最简需求卡
-  - 运行模式：单文件 index.html，双击 file:// 直接运行，零外部依赖
-  - 状态流转：idle / running / paused / finished 四态状态机
-  - 倒计时规则：固定 25 分钟（1500 秒），归零停在 00:00，标题变「休息一下」
-  - 持久化要求：localStorage 存储「今日完成数」，跨天自动归零，容错降级
-  - 严禁项：不做音频、不做桌面通知权限、不做 Todo 清单、不做历史图表
-  ```
-  ::::
+  ![需求访谈实战对话：Agent 提问关键边界并生成 REQUIREMENT.md](/images/case-timer/case-timer-chat-1-requirement.png)
 
-- 保存计划 · `74b2ef9` docs: 建立三步实施计划
+- 步骤二 · 保存实施计划 · `74b2ef9` docs: 建立三步实施计划
   time="2026-10-28"
 
-  - 拆分为骨架搭建、倒计时状态流转、持久化计数三个微任务
-  - 明确禁止提前写代码，为每个任务预设手动验收操作
-
-  :::: details 展开查看代码 Diff 与文件结构
+  - **怎么跟它说**：让它根据需求卡拆解出实现步骤，要求每个步骤都要能单独验证，依然提醒它先不要动源码。
+  - **确认的要点**：拆分成骨架、倒计时、数据保存三步，每步都有明确的手动测试方法。
+  - **当前项目文件**：
   ::: file-tree
   - pomodoro/
     - REQUIREMENT.md
-    - TODO.md # 三步拆解与自测方案（新增）
+    - TODO.md # 本轮生成：三步实施清单
   :::
 
-  ```markdown title="TODO.md 实施计划核心清单"
-  - [ ] 任务一：骨架搭建与静态样式
-    - 验收：单文件打开居中显示 25:00，<script> 数量为 0，样式等宽防抖
-  - [ ] 任务二：核心倒计时与四态状态流转
-    - 验收：单定时器防连击，四态正确流转，归零标题更新并停在 00:00
-  - [ ] 任务三：今日完成数持久化与跨天重置
-    - 验收：localStorage 记录次数，跨天与损坏 JSON 优雅容错降级
-  ```
-  ::::
+  ![制定实施计划实战对话：要求先给方案不写代码，生成 TODO.md](/images/case-timer/case-timer-chat-2-todo.png)
 
-- 任务一交付 · `17db13e` feat: 完成骨架搭建与静态样式
+- 步骤三 · 任务一交付 · `17db13e` feat: 完成骨架搭建与静态样式
   time="2026-10-28"
 
-  - 交付干净的单文件静态骨架，使用 flex 全屏居中与 tabular-nums
-  - `<script>` 数量为 0，仅包含静态 HTML 和样式
-
-  :::: details 展开查看代码 Diff 与文件结构
+  - **怎么跟它说**：派发第一步任务，明确要求这次只写网页骨架和 CSS 样式，不要写任何 JavaScript 逻辑脚本。
+  - **确认的要点**：页面居中显示 25:00，`<script>` 标签数量为 0，双击文件就能在浏览器查看排版。
+  - **当前项目文件**：
   ::: file-tree
   - pomodoro/
-    - index.html # 静态骨架与样式（新增，+102 行）
+    - index.html # 本轮生成：纯静态页面与样式（暂无 JS 脚本）
     - REQUIREMENT.md
     - TODO.md
   :::
 
-  ```diff title="index.html 核心骨架变更"
-  + <div class="timer-display" id="timer">25:00</div>
-  + <div class="btn-group">
-  +   <button id="primary" class="btn primary">开始</button>
-  +   <button id="reset" class="btn secondary">重置</button>
-  + </div>
-  + <div class="count-display">今日完成：<span id="count">0</span> 次</div>
-  ```
+  ![任务一派发与交付对话：审查静态骨架与等宽样式](/images/case-timer/case-timer-chat-3-task1.png)
 
-  ```css title="tabular-nums 防抖等宽与自适应核心样式"
-  .timer-display {
-    font-variant-numeric: tabular-nums; /* 数字等宽，秒数跳动时不左右抖动 */
-    font-size: clamp(72px, 18vw, 152px); /* 响应式自适应大字号 */
-  }
-  ```
-  ::::
-
-- 任务二交付 · `6764dc2` feat: 实现核心倒计时与四态状态流转
+- 步骤四 · 任务二交付 · `6764dc2` feat: 实现核心倒计时与四态状态流转
   time="2026-10-28"
 
-  - 接入四态状态机（idle / running / paused / finished）
-  - 单定时器防抖防加速，归零停在 00:00 并自动更新网页标题
-
-  :::: details 展开查看代码 Diff 与文件结构
+  - **怎么跟它说**：派发第二步任务，只实现倒计时和按钮状态切换。提醒它注意防抖，避免连续点击开始按钮导致倒计时越跑越快。
+  - **确认的要点**：支持开始、暂停、继续和重置四种状态，倒计时归零停在 00:00 并修改网页标题。
+  - **当前项目文件**：
   ::: file-tree
   - pomodoro/
-    - index.html # 注入状态机与定时器逻辑（修改，+68 行）
-  :::
-
-  ```diff title="index.html 状态机与防加速定时器 Diff"
-  + const STATES = { idle: '开始', running: '暂停', paused: '继续', finished: '开始' };
-  + let state = 'idle', remainingSeconds = 1500, intervalId = null;
-  + 
-  + function startTicking() {
-  +   clearInterval(intervalId); // 连击防抖：清理旧定时器，防止越点越快
-  +   intervalId = setInterval(tick, 1000);
-  + }
-  + function tick() {
-  +   --remainingSeconds;
-  +   if (remainingSeconds <= 0) {
-  +     clearInterval(intervalId); intervalId = null;
-  +     state = 'finished';
-  +     document.title = '休息一下';
-  +   }
-  +   render();
-  + }
-  ```
-  ::::
-
-- 任务三交付 · `182358b` feat: 完成今日完成数持久化与跨天重置
-  time="2026-10-28"
-
-  - 单 key 存储今日完成数，按本地时区计算当天日期
-  - 实现损坏 JSON 与隐私模式的三层容错降级，不持久化倒计时进度
-
-  :::: details 展开查看代码 Diff 与文件结构
-  ::: file-tree
-  - pomodoro/
-    - index.html # 接入本地持久化与容错降级（修改，+35 行）
-  :::
-
-  ```diff title="index.html localStorage 与容错降级 Diff"
-  + const STORAGE_KEY = 'pomodoro.daily';
-  + function getTodayCount() {
-  +   try {
-  +     const raw = localStorage.getItem(STORAGE_KEY);
-  +     if (!raw) return 0;
-  +     const parsed = JSON.parse(raw);
-  +     return (parsed && parsed.date === getLocalDateStr()) ? (Number(parsed.count) || 0) : 0;
-  +   } catch {
-  +     return 0; // 损坏 JSON、隐私模式或禁用 Storage 时优雅降级为 0
-  +   }
-  + }
-  ```
-  ::::
-
-- 收尾交付 · `dd0478a` chore: 忽略本地截图目录
-  time="2026-10-28"
-
-  - 新建 .gitignore 隔离过程开发资产，完成项目交付验收
-
-  :::: details 展开查看代码 Diff 与文件结构
-  ::: file-tree
-  - pomodoro/
-    - index.html
+    - index.html # 本轮修改：加入状态机与防加速定时器
     - REQUIREMENT.md
     - TODO.md
-    - .gitignore # 忽略本地测试截图目录（新增，+1 行）
   :::
 
-  ```diff title=".gitignore"
-  + imgs/
-  ```
-  ::::
+  ![任务二状态机与定时器对话：审查四态流转逻辑](/images/case-timer/case-timer-chat-4-task2.png)
+
+- 步骤五 · 任务三交付 · `182358b` feat: 完成今日完成数持久化与跨天重置
+  time="2026-10-28"
+
+  - **怎么跟它说**：派发第三步任务，把今日完成次数存进浏览器。要求它只存完成数，不要存倒计时的秒数，并加上异常容错处理。
+  - **确认的要点**：用 localStorage 记录当天完成次数，跨天自动归零；即使读取损坏数据也不会让页面报错。
+  - **当前项目文件**：
+  ::: file-tree
+  - pomodoro/
+    - index.html # 本轮修改：加入本地存储与容错降级
+    - REQUIREMENT.md
+    - TODO.md
+  :::
+
+  ![任务三派发与持久化对话（上）：需求说明与存储设计](/images/case-timer/case-timer-chat-5-task3-1.png)
+
+  ![任务三派发与持久化对话（下）：容错降级与代码落地](/images/case-timer/case-timer-chat-5-task3-2.png)
+
+- 步骤六 · 收尾与交付 · `dd0478a` chore: 忽略本地截图目录
+  time="2026-10-28"
+
+  - **怎么跟它说**：自己手动测试一遍各项功能，确认没问题后，让 Agent 创建 `.gitignore` 文件排除测试截图。
+  - **确认的要点**：完成所有检查，仓库中只保留项目必需的文件。
+  - **最终项目文件**：
+  ::: file-tree
+  - pomodoro/
+    - index.html # 完整单文件实现（HTML + CSS + 原生 JS）
+    - REQUIREMENT.md # 最简需求卡
+    - TODO.md # 三步实施清单
+    - .gitignore # 本轮生成：忽略测试截图目录
+  :::
+
+  ![验收与收工对话：完成检查并整理工程资产](/images/case-timer/case-timer-chat-6-finish.png)
 :::::
 
-## 五步实战演练路线
-
-按照真实的执行节奏，跟随以下五步亲手演练：
-
-::: steps
-1. **[第一步：想清楚（把它问清楚）](/case-timer/requirement/)**
-   - 通过 10 个关键问题明确边界，生成 `REQUIREMENT.md` 并完成首次提交。
-
-2. **[第二步：定计划（让它先交方案）](/case-timer/prompt/)**
-   - 让 Agent 将实现拆解为三步任务与验收动作，生成 `TODO.md`。
-
-3. **[第三步：生成并运行（单任务推进）](/case-timer/run/)**
-   - 实现任务一，只包含静态骨架与排版，完成浏览器直测并提交。
-
-4. **[第四步：盯差量与修边界（调试与防御）](/case-timer/bug/)**
-   - 推进任务二与任务三，审查状态机流转、防定时器连击加速、本地时区与容错降级。
-
-5. **[第五步：检查与交付（全量验收与收工）](/case-timer/finish/)**
-   - 执行 8 项验收测试，配置 .gitignore，检视完整的 Git 提交历史。
+::: tip 查看具体的代码与测试细节
+时间线里重点展示了与 Agent 对话的过程。如果你想看每一步完整的提示词、代码改动差异以及具体的手动测试步骤，可以点击下方「下一页」按步骤阅读。
 :::
 
 ## 开始之前：环境准备
