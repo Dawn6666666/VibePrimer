@@ -320,189 +320,110 @@ render();
 ::::
 :::::
 
-## 最终交付物与目录结构
+## 与 Agent 的对话过程
 
-整个课程表项目以极其干净的工程结构落地在本地仓库中：
+这个案例同样不需要我们自己手写代码。我们通过终端中的 Agent，完成了一次需求梳理和三步渐进式实现，在关键节点完成了 6 次 Git 提交。
 
-:::: file-tree
-- schedule/
-  - index.html       # 单文件交付（HTML 骨架 + 课表网格样式 + 渲染与冲突逻辑）
-  - REQUIREMENT.md   # 第一步：7 字段契约、冲突三条件与 9 条验收标准
-  - TODO.md          # 第二步：三步拆解清单与手动验收步骤
-  - .gitignore       # 收尾：忽略本地截图文件（*.png）
-::::
-
-## 全流程 Git 提交历史
-
-使用 `pi` 在终端中配合开发，每一步先定计划、完成后审查 Diff 并分步提交：
+下面按顺序列出当时的对话记录、怎么向 Agent 提要求，以及每次生成的文件变化：
 
 ::::: timeline
-- 保存需求 · `9240319` docs: 建立课程表最简需求卡
+- 步骤一 · 保存需求卡 · `9240319` docs: 建立课程表最简需求卡
   time="2026-10-28"
 
-  - 锁定 7 个核心课程字段契约（name, teacher, room, day, start, span, weeks）
-  - 确立周次规则与冲突三条件判定机制，明确 9 项验收基准
+  - **怎么跟它说**：先不要写代码，让它针对课程表的数据结构提问。通过 8 个关键问题确认字段范围、单双周算法和重叠冲突的处理方式。
+  - **确认的要点**：明确 7 个核心课程字段，支持 1–20 周切换，冲突时表格保留先录入者并标红，上方警告栏列出全部冲突课。
 
-  :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
   - schedule/
-    - REQUIREMENT.md # 需求文档与字段定义（新增）
+    - REQUIREMENT.md # 本轮生成：7 字段定义与冲突判定规则
   :::
 
-  ```markdown title="REQUIREMENT.md 核心内容"
-  # 课程表核心字段契约
-  - 核心字段：name, teacher, room, day (1-5), start (1-6), span (1-4), weeks ('all'|'odd'|'even')
-  - 周次范围：第 1–20 周，支持上一周/下一周切换与单双周计算
-  - 冲突判定三条件：同天 (day 相等) + 节次重叠 + 周次交集
-  - 冲突处理原则：表格展示先录入课程并标红，上方警告栏展开完整冲突清单
-  ```
-  ::::
+  ![数据结构与需求访谈对话（上）：提问 8 个核心问题](/images/case-schedule/case-schedule-chat-1-requirement-1.png)
 
-- 保存计划 · `95dd8b9` docs: 建立三步实施计划
+  ![数据结构与需求访谈对话（下）：确认字段与输出需求卡](/images/case-schedule/case-schedule-chat-1-requirement-2.png)
+
+- 步骤二 · 保存实施计划 · `95dd8b9` docs: 建立三步实施计划
   time="2026-10-28"
 
-  - 拆分骨架搭建、数据渲染、冲突持久化三个任务
-  - 明确禁止提前写代码，建立防破坏验收步骤
+  - **怎么跟它说**：要求它在动代码前，先拆解出分步计划并写入 `TODO.md`，每个步骤都要给出明确的手动测试方法。
+  - **确认的要点**：拆分为「空网格骨架 → 数据渲染与合并 → 冲突检测与周次保存」三步，依然严禁提前写代码。
 
-  :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
   - schedule/
     - REQUIREMENT.md
-    - TODO.md # 实施计划与验收方案（新增）
+    - TODO.md # 本轮生成：三步实施清单
   :::
 
-  ```markdown title="TODO.md 实施计划核心清单"
-  - [ ] 任务一：原生 5×6 表格骨架与周次切换栏
-    - 验收：COURSES 为空，严禁提前引入数据或写 rowspan，只交付干净网格
-  - [ ] 任务二：课程数据渲染与跨节 rowspan 合并
-    - 验收：8 门内置课程正确按单双周过滤，先到先占策略保护表格不塌陷
-  - [ ] 任务三：冲突检测算法、红框标记与 localStorage 持久化
-    - 验收：两两判定重叠，冲突课程红框高亮，警告栏通报，当前周持久化
-  ```
-  ::::
+  ![制定实施计划对话：把课程表拆解为三步任务与验收方案](/images/case-schedule/case-schedule-chat-2-todo.png)
 
-- 任务一交付 · `7446120` feat: 完成课表骨架搭建与基础网格
+- 步骤三 · 任务一交付 · `7446120` feat: 完成课表骨架搭建与基础网格
   time="2026-10-28"
 
-  - 交付 5×6 原生表格骨架与周次切换栏
-  - 只包含静态表格结构，暂不引入课程数据与存储逻辑
+  - **怎么跟它说**：派发第一步任务，只做 5×6 的空表格网格和周次切换栏，不要提前写课程数据渲染。
+  - **确认的要点**：页面呈现干净的空课表网格，顶部有上一周/下一周切换栏，双击即可在浏览器预览布局。
 
-  :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
   - schedule/
-    - index.html # 原生表格骨架与网格样式（新增，+115 行）
+    - index.html # 本轮生成：5×6 原生课表网格与切换栏（暂无数据）
     - REQUIREMENT.md
     - TODO.md
   :::
 
-  ```diff title="index.html 5×6 表格骨架变更"
-  + <div class="toolbar">
-  +   <button id="prevWeekBtn">上一周</button>
-  +   <span id="weekDisplay">第 1 周 / 共 20 周（单周）</span>
-  +   <button id="nextWeekBtn">下一周</button>
-  + </div>
-  + <table id="scheduleTable">
-  +   <thead><tr><th>节次</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th><th>周五</th></tr></thead>
-  +   <tbody id="gridBody"></tbody>
-  + </table>
-  ```
-  ::::
+  ![任务一派发与交付对话：审查空表格网格与周次栏](/images/case-schedule/case-schedule-chat-3-task1.png)
 
-- 任务二交付 · `a31b0fc` feat: 实现课程数据渲染与跨节合并
+- 步骤四 · 任务二交付 · `a31b0fc` feat: 实现课程数据渲染与跨节合并
   time="2026-10-28"
 
-  - 接入 8 门内置课程，实现按周过滤与 `rowspan` 连续节次合并
-  - 采取先到先占策略保护表格列宽，单双周课程交替生效
+  - **怎么跟它说**：派发第二步任务，把内置的 8 门课程渲染到表格中，根据当前周次过滤单双周，并实现连续节次的 `rowspan` 纵向合并。
+  - **确认的要点**：切换周次时单双周课程正确交替，跨节课程自动合并单元格且不破坏表格布局。
 
-  :::: details 展开查看代码 Diff 与文件结构
   ::: file-tree
   - schedule/
-    - index.html # 数据过滤与 rowspan 动态渲染（修改，+72 行）
-  :::
-
-  ```diff title="index.html rowspan 合并与占位跳过 Diff"
-  + // 5×6 空网格矩阵初始化与按周次过滤
-  + const weekCourses = COURSES.filter(c => filterByWeek(c, currentWeek));
-  + for (const c of weekCourses) {
-  +   const d = c.day - 1, s = c.start - 1;
-  +   if (grid[d][s] === null) {
-  +     grid[d][s] = { course: c, span: c.span };
-  +     for (let r = 1; r < c.span; r++) {
-  +       if (s + r < 6) grid[d][s + r] = 'skip'; // 标记被合并单元格覆盖，渲染时跳过
-  +     }
-  +   }
-  + }
-  ```
-  ::::
-
-- 任务三交付 · `743e2ff` feat: 实现冲突检测与周次持久化
-  time="2026-10-28"
-
-  - 实现两两冲突检测与区间聚合算法，红框标记冲突卡片，展开警告栏
-  - 实现 `localStorage` 周次存储，加持 1–20 边界钳制与损坏容错兜底
-
-  :::: details 展开查看代码 Diff 与文件结构
-  ::: file-tree
-  - schedule/
-    - index.html # 冲突检测算法与 localStorage 持久化（修改，+58 行）
-  :::
-
-  ```diff title="index.html 冲突检测三条件判定 Diff"
-  + // 判定节次是否有交集：max(start1, start2) <= min(end1, end2)
-  + function periodsOverlap(s1, span1, s2, span2) {
-  +   return Math.max(s1, s2) <= Math.min(s1 + span1 - 1, s2 + span2 - 1);
-  + }
-  + // 冲突判定：同天 + 节次重叠 + 周次相交
-  + for (let i = 0; i < weekCourses.length; i++) {
-  +   for (let j = i + 1; j < weekCourses.length; j++) {
-  +     const a = weekCourses[i], b = weekCourses[j];
-  +     if (a.day === b.day && periodsOverlap(a.start, a.span, b.start, b.span) && weeksIntersect(a.weeks, b.weeks)) {
-  +       conflicts.push([a, b]);
-  +     }
-  +   }
-  + }
-  ```
-  ::::
-
-- 收尾交付 · `40b0213` chore: 忽略本地截图
-  time="2026-10-28"
-
-  - 配置 `.gitignore` 过滤本地开发产生的测试截图，保持仓库整洁
-
-  :::: details 展开查看代码 Diff 与文件结构
-  ::: file-tree
-  - schedule/
-    - index.html
+    - index.html # 本轮修改：接入课程数据与 rowspan 跨节合并
     - REQUIREMENT.md
     - TODO.md
-    - .gitignore # 过滤本地测试截图（新增，+1 行）
   :::
 
-  ```diff title=".gitignore"
-  + *.png
-  ```
-  ::::
+  ![任务二数据渲染对话（上）：派发数据接入与 rowspan 合并指令](/images/case-schedule/case-schedule-chat-4-task2-1.png)
+
+  ![任务二数据渲染对话（下）：代码落地与占位跳过审查](/images/case-schedule/case-schedule-chat-4-task2-2.png)
+
+- 步骤五 · 任务三交付 · `743e2ff` feat: 实现冲突检测与周次持久化
+  time="2026-10-28"
+
+  - **怎么跟它说**：派发第三步任务，加入两两比对冲突算法。冲突课程卡片标红，上方警告栏详细列出冲突名称；当前周次存入浏览器并在异常时兜底回第 1 周。
+  - **确认的要点**：同天且节次重叠、周次有交集的课程正确标红通报；刷新页面后保持在上次浏览的周次。
+
+  ::: file-tree
+  - schedule/
+    - index.html # 本轮修改：冲突检测算法、红框标记与周次保存
+    - REQUIREMENT.md
+    - TODO.md
+  :::
+
+  ![任务三冲突检测与存储对话（上）：派发冲突算法与周次保存指令](/images/case-schedule/case-schedule-chat-5-task3-1.png)
+
+  ![任务三冲突检测与存储对话（下）：两两冲突比对与容错审查](/images/case-schedule/case-schedule-chat-5-task3-2.png)
+
+- 步骤六 · 收尾与交付 · `40b0213` chore: 忽略本地截图
+  time="2026-10-28"
+
+  - **怎么跟它说**：手动跑完单双周切换、冲突警告和异常周次刷新等测试后，让 Agent 创建 `.gitignore` 排除测试截图并收工。
+  - **确认的要点**：通过所有检查，排除本地测试图片，仓库保持干净整洁。
+
+  ::: file-tree
+  - schedule/
+    - index.html # 完整单文件实现（HTML + CSS + 原生 JS）
+    - REQUIREMENT.md # 需求卡
+    - TODO.md # 三步实施清单
+    - .gitignore # 本轮生成：忽略本地截图文件
+  :::
+
+  ![收尾与验收对话：完成检查并整理工程资产](/images/case-schedule/case-schedule-chat-6-finish.png)
 :::::
 
-## 五步实战演练路线
-
-按照真实的实操节奏，查看每一步的 Prompt 指令、代码审查与工具调用：
-
-::: steps
-1. **[第一步：先定数据，再谈界面](/case-schedule/requirement/)**
-   - 通过 8 个问题明确数据结构与冲突规则，生成 `REQUIREMENT.md` 并完成首次提交。
-
-2. **[第二步：让它先交方案](/case-schedule/plan/)**
-   - 要求 Agent 输出包含三阶段验证步骤的 `TODO.md`，先确认计划再写代码。
-
-3. **[第三步：生成并运行（任务一与任务二）](/case-schedule/build/)**
-   - 单任务推进：先完成基础表格骨架，再添加数据过滤与 `rowspan` 跨节合并。
-
-4. **[第四步：盯差量与修边界（任务三）](/case-schedule/debug/)**
-   - 审查冲突检测算法、告警展示与 `localStorage` 容错处理。
-
-5. **[第五步：检查并交付（全量验收与收工）](/case-schedule/ship/)**
-   - 对照 9 条验收标准逐项测试，配置 `.gitignore`，检视完整的 Git 提交历史。
+::: tip 查看具体的代码与测试细节
+时间线里重点展示了与 Agent 对话的过程。如果你想看每一步完整的提示词、代码改动差异以及具体的手动测试步骤，可以点击下方「下一页」按步骤阅读。
 :::
 
 ## 开始之前：环境准备

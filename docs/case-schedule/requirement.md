@@ -48,55 +48,17 @@ createTime: 2026/10/28 10:15:00
 
 ::::
 
-## 课程数据字段定义
+## 课程数据的 7 个字段
 
-基于访谈确定的 7 个核心字段如下：
+访谈确定的数据结构非常直接，每门课程只保留以下 7 个字段：
 
-:::: field-group
-
-::: field name
-@type string
-@required
-课程全称，例如 `"高等数学"`、`"数据结构"`。
-:::
-
-::: field teacher
-@type string
-@required
-授课教师姓名，例如 `"张伟"`、`"李娜"`。
-:::
-
-::: field room
-@type string
-@required
-上课教室或场地，例如 `"A101"`、`"体育馆"`。
-:::
-
-::: field day
-@type number
-@required
-上课星期，取值范围 `1` 至 `5`（周一至周五）。
-:::
-
-::: field start
-@type number
-@required
-课程开始节次，取值范围 `1` 至 `6`。
-:::
-
-::: field span
-@type number
-@required
-连续上课节数，取值范围 `1` 至 `4`。约束：`start + span - 1 <= 6`，不可超出第 6 节。
-:::
-
-::: field weeks
-@type string
-@required
-周次规则，仅支持 `'all'`（全周）、`'odd'`（单周/奇数周）、`'even'`（双周/偶数周）。
-:::
-
-::::
+- `name`：课程名称，例如“高等数学”。
+- `teacher`：教师姓名，例如“张伟”。
+- `room`：上课教室，例如“A101”。
+- `day`：星期几，取值 1 至 5（代表周一到周五）。
+- `start`：开始节次，取值 1 至 6。
+- `span`：连续节数，取值 1 至 4（例如从第 1 节开始连上 2 节）。
+- `weeks`：周次规则，取值为 `'all'`（每周）、`'odd'`（单周）或 `'even'`（双周）。
 
 ## 整理需求文档：REQUIREMENT.md
 
