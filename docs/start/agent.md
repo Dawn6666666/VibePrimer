@@ -40,9 +40,9 @@ flowchart LR
 
 Agent 只是执行任务的工具。工具随时可以替换，核心能力始终在于：想清楚需求、设计验收标准、把控任务粒度并仔细审阅代码 Diff。
 
-## 三条路线，按你的条件选
+## 两条路线，按你的条件选
 
-:::: card-grid cols="3"
+:::: card-grid cols="2"
 
 <Card title="路线一 · VS Code + Pi 插件" icon="carbon:terminal">
 
@@ -54,21 +54,11 @@ Agent 只是执行任务的工具。工具随时可以替换，核心能力始�
 
 </Card>
 
-<Card title="路线二 · 学生认证生态" icon="carbon:education">
+<Card title="路线二 · 国内服务与 Harness" icon="carbon:checkmark-outline">
 
-**GitHub Copilot**
+**Trae / CodeBuddy / ZCode / Qoder CN / DSH 等**
 
-符合条件的学生可申请 GitHub Education 权益。是否包含 Copilot 及其额度以申请时的官方说明为准。
-
-**适合**：已有或愿意申请 GitHub 学生认证。
-
-</Card>
-
-<Card title="路线三 · 国内服务与 Harness" icon="carbon:checkmark-outline">
-
-**ZCode / WorkBuddy / Trae / DeepSeek Harness 等**
-
-国内账号体系与网络环境下直接可用，或使用专门接入 DeepSeek 模型的 Harness 工具。
+国内账号体系与网络环境下直接可用，或使用专门接入 DeepSeek 等国内模型的 Harness 工具。
 
 **适合**：希望使用国内网络服务，不想配置复杂的海外支付方式或终端环境。
 
@@ -76,7 +66,7 @@ Agent 只是执行任务的工具。工具随时可以替换，核心能力始�
 
 ::::
 
-三条路线都能完成本指南。界面形态可能不同，但“先给计划，等我确认后再改代码”的协作方式完全相同。
+两条路线都能完成本指南。界面形态可能不同，但“先给计划，等我确认后再改代码”的协作方式完全相同。
 
 ## 路线一：VS Code + Pi 侧边栏插件
 
@@ -155,43 +145,52 @@ Agent 只是执行任务的工具。工具随时可以替换，核心能力始�
 使用商业 API key 时，务必在服务商后台设置单月预算和额度预警，避免 Agent 进入死循环产生非预期扣费。长任务完成后在侧边栏开启新会话，避免单次对话历史过长导致上下文 Token 消耗倍增。
 ::::
 
-## 路线二：GitHub Copilot
+## 路线二：国内服务与开箱即用 Agent
+
+国内有多款开箱即用的 AI 编程环境、插件与专用 Harness 工具。它们在中文支持、国内网络直连和免去海外支付等方面非常友好：
+
+### 常见国内工具与下载入口
+
+- **[Trae](https://www.trae.cn/)**（字节跳动）  
+  字节跳动推出的 AI 原生集成开发环境，内置 Claude-3.7、GPT-4o 与 DeepSeek 模型，提供独立的 IDE 以及开箱即用的 Builder（Agent）模式。
+
+  ![Trae 官网下载页面](/images/start/agent-trae-download.png)
+
+- **[腾讯云 CodeBuddy / WorkBuddy](https://copilot.tencent.com/)**（腾讯）  
+  腾讯推出的 AI 代码助手，支持直接在 VS Code 扩展市场搜索安装，也提供独立桌面客户端。支持腾讯混元及 DeepSeek 模型，国内网络直连、支持微信或手机号一键登录。
+
+  ![腾讯云 CodeBuddy 官网下载页面](/images/start/agent-codebuddy-download.png)
+
+- **[ZCode](https://zcode.z.ai/)**（智谱 AI）  
+  智谱推出的智能体开发环境（ADE），专为长任务设计，深度融合 GLM 大模型推理能力，将需求规划、多文件编码与终端执行收束在统一工作台中。
+
+  ![ZCode 官网下载页面](/images/start/agent-zcode-download.png)
+
+- **[Qoder CN (原通义灵码)](https://tongyi.aliyun.com/lingma/)**（阿里云）  
+  阿里云推出的智能编码辅助工具（原名通义灵码，现升级为 Qoder CN），可直接在 VS Code 扩展商店一键安装，中文上下文理解能力强，支持代码补全、工程级问答与行间智能编辑。
+
+  ![Qoder CN 官网下载页面](/images/start/agent-qoder-download.png)
+
+- **[DeepSeek Harness (DSH)](https://www.deepseek.com/en/harness/)**（DeepSeek）  
+  DeepSeek 官方提供的 Harness 接入方案与环境，直接驱动 DeepSeek 顶尖推理模型在本地项目执行文件读写、环境探测与 ReAct 循环。
+
+  ![DeepSeek Harness (DSH) 页面](/images/start/agent-dsh-download.png)
+
+### 使用步骤
 
 ::::: steps
 
-1. 前往 GitHub Education 页面申请学生权益。具体所需材料以官方审核要求为准。
-2. 认证通过后，在 GitHub 账号设置中确认 Copilot 权益已激活。
-3. 在 VS Code 扩展市场搜索并安装 GitHub Copilot 扩展，登录对应账号。
-4. 打开 Copilot Chat 侧边栏，将运行模式切换到 Agent 模式，执行最小测试验证文件修改能力。
+1. **下载客户端或安装对应扩展**
 
-:::::
-
-学生权益范围可能调整。遇到额度或权限报错时，先核对个人账号后台的订阅状态。
-
-## 路线三：国内开箱即用编程 Agent
-
-国内有多款开箱即用的编程 Agent 产品与专用 Harness 工具可供选择：
-
-- **ZCode**：国内大模型支持的编程辅助工具，对中文需求与本地环境支持良好。
-- **WorkBuddy**：腾讯推出的 AI 编码伙伴（早期曾用名 CodeBuddy），提供编辑器插件与对话能力。
-- **Trae**：字节跳动推出的编程环境，包含独立 IDE 与 Agent 模式。
-- **DeepSeek Harness**：直接接入 DeepSeek 模型 API 的各类客户端或插件，利用其推理能力在本地项目执行文件读写与 ReAct 循环。
-
-使用步骤如下：
-
-::::: steps
-
-1. **下载或安装扩展**
-
-   根据产品官网说明下载对应客户端，或直接在 VS Code 扩展市场搜索安装其插件。
+   点击上方对应官网链接下载桌面客户端，或在 VS Code 扩展市场搜索安装其官方插件。
 
 2. **登录账号**
 
-   使用国内手机号或对应平台账号登录，确认当前模型配额。
+   使用国内手机号或对应平台账号登录，确认当前模型免费配额或会员状态。
 
 3. **切换到 Agent 模式**
 
-   各产品通常区分普通问答与文件修改两种模式。找到模式切换入口，选择 Agent 或 Builder 模式。纯问答模式不会直接写入文件。
+   各产品通常区分普通问答与文件修改两种模式。找到模式切换入口，选择 **Agent** 或 **Builder** 模式。纯问答模式不会直接写入文件。
 
 4. **执行连通性验证**
 
