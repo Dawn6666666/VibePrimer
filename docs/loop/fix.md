@@ -66,7 +66,7 @@ Uncaught TypeError: Cannot read properties of null (reading 'textContent')
 
 ### 三、安全地缩小范围
 
-可以先备份或创建 WIP 提交，再选择一种方法：
+可以先备份或做一次临时提交，再选择一种方法：
 
 - 回到上一个能运行的提交，分批恢复改动，找出引入问题的那一处。
 - 换一个输入、浏览器或运行方式，比较结果差异。
