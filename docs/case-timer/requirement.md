@@ -126,19 +126,49 @@ localStorage 仅存今日完成数（含日期），跨天自动归零；刷新�
 
 ## 状态机流转图
 
-用 Mermaid 把这四种状态画出来，逻辑一目了然：
+很多初学者自己写计时器时，经常遇到“连续点击开始按钮导致倒计时越来越快”、“暂停后依然在扣秒”、“重置后后台还在计时”等 Bug。根本原因就在于没有理清**状态**。
+
+我们用状态机把整个番茄钟抽象为 4 种互斥的确定状态。任何时刻，页面只能处于其中一种状态，显示什么时间、按钮显示什么字，完全由当前状态决定：
 
 ```mermaid
-stateDiagram-v2
-    [*] --> idle: 页面载入 / 重置
-    idle --> running: 点「开始」
-    running --> paused: 点「暂停」
-    paused --> running: 点「继续」
-    running --> finished: 倒计时归零 (00:00)
-    running --> idle: 点「重置」
-    paused --> idle: 点「重置」
-    finished --> idle: 点「重置」
+flowchart TD
+    Start(["网页打开 / 刷新"]):::init --> IDLE
+
+    subgraph 状态流转 ["番茄钟 4 态流转图"]
+        IDLE["<b>未开始 (idle)</b><br/>• 屏幕：25:00<br/>• 按钮：『开始』<br/>• 重置：可用"]:::idleState
+        RUNNING["<b>倒计时中 (running)</b><br/>• 屏幕：每秒减 1<br/>• 按钮：『暂停』<br/>• 重置：可用"]:::runState
+        PAUSED["<b>已暂停 (paused)</b><br/>• 屏幕：数字停住<br/>• 按钮：『继续』<br/>• 重置：可用"]:::pauseState
+        FINISHED["<b>已结束 (finished)</b><br/>• 屏幕：00:00<br/>• 按钮：禁用<br/>• 标题：『休息一下』<br/>• 今日次数：+1"]:::finishState
+    end
+
+    IDLE -->|"点击【开始】"| RUNNING
+    RUNNING -->|"点击【暂停】"| PAUSED
+    PAUSED -->|"点击【继续】"| RUNNING
+    RUNNING -->|"自然倒计时归零"| FINISHED
+
+    RUNNING -->|"点击【重置】"| IDLE
+    PAUSED -->|"点击【重置】"| IDLE
+    FINISHED -->|"点击【重置】"| IDLE
+
+    classDef init fill:#f3f4f6,stroke:#9ca3af,stroke-width:1px,color:#374151;
+    classDef idleState fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e40af;
+    classDef runState fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#065f46;
+    classDef pauseState fill:#fffbeb,stroke:#f59e0b,stroke-width:2px,color:#92400e;
+    classDef finishState fill:#fef2f2,stroke:#ef4444,stroke-width:2px,color:#991b1b;
 ```
+
+### 四态速查表
+
+| 状态名称（代码变量） | 屏幕显示时间 | 主按钮文字 | 重置按钮 | 发生时机与核心动作 |
+| :--- | :--- | :--- | :--- | :--- |
+| **未开始 (`idle`)** | `25:00` 静止 | 「开始」 | 可用 | 页面刚打开、刷新或点击重置后进入此状态，定时器关闭 |
+| **倒计时中 (`running`)** | 动态递减 (`mm:ss`) | 「暂停」 | 可用 | 点击开始或继续后进入，启动单一定时器，每秒扣减 1 秒 |
+| **已暂停 (`paused`)** | 数字停住不动 | 「继续」 | 可用 | 计时中点击暂停进入，清除定时器，保留当前剩余秒数 |
+| **已结束 (`finished`)** | `00:00` 静止 | 置灰禁用 | 可用 | 倒计时归零时触发，清除定时器，网页标题变为“休息一下”，今日完成数 +1 |
+
+::: tip 为什么这样设计？
+有了这张状态表，后续让 Agent 写 JavaScript 时，只要要求它“严格按照四态状态机驱动”，代码就不会在各个按钮事件里写出一堆互相打架的 `if-else`，从根本上杜绝定时器越点越快的问题。
+:::
 
 ## 首次提交：保存需求文档
 
